@@ -41,9 +41,12 @@ export function cartValidationsGenerateRun(input) {
   const errors = [];
 
   // 阶段判断：仅在结账阶段执行（CHECKOUT_INTERACTION 或 CHECKOUT_COMPLETION）
+  // 阶段判断：进入结算页 + 提交结算时执行
   const step = input?.buyerJourney?.step;
   const isCheckoutPhase =
-    step === "CHECKOUT_INTERACTION" || step === "CHECKOUT_COMPLETION";
+    step === "CHECKOUT_START" || // 进入结算页时
+    step === "CHECKOUT_COMPLETION"; // 点击提交结算时
+
   if (!isCheckoutPhase) {
     return { operations: [{ validationAdd: { errors: [] } }] };
   }
