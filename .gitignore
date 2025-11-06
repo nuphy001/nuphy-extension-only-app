@@ -23,6 +23,7 @@ extensions/*/dist
 
 .idea
 .vscode
+.history
 
 
 

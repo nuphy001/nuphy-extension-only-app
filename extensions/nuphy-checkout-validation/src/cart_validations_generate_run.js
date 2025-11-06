@@ -7,7 +7,7 @@
  */
 
 // Environment configuration - set to 'production' or 'test'
-const ENVIRONMENT = "test"; // Change to 'production' for production environment
+const ENVIRONMENT = "production"; // Change to 'production' for production environment
 // const ENVIRONMENT = "production"; // Change to 'test' for production environment
 
 // Configuration objects for different environments
@@ -43,7 +43,7 @@ export function cartValidationsGenerateRun(input) {
   // 阶段判断：仅在结账阶段执行（CHECKOUT_INTERACTION 或 CHECKOUT_COMPLETION）
   const step = input?.buyerJourney?.step;
   const isCheckoutPhase =
-      step === "CHECKOUT_INTERACTION" || step === "CHECKOUT_COMPLETION";
+    step === "CHECKOUT_INTERACTION" || step === "CHECKOUT_COMPLETION";
   if (!isCheckoutPhase) {
     return { operations: [{ validationAdd: { errors: [] } }] };
   }
@@ -58,9 +58,9 @@ export function cartValidationsGenerateRun(input) {
   for (const line of input.cart.lines) {
     const merchandise = line.merchandise;
     const productId =
-        merchandise?.__typename === "ProductVariant" && merchandise.product
-            ? merchandise.product.id
-            : null;
+      merchandise?.__typename === "ProductVariant" && merchandise.product
+        ? merchandise.product.id
+        : null;
 
     if (!productId) continue;
 
@@ -99,7 +99,7 @@ export function cartValidationsGenerateRun(input) {
       errors.push({
         // message: "盲盒产品不能单独购买,请添加其他产品到购物车",
         message:
-            "Mystery Box cannot be purchased alone. Please add something else to your cart.",
+          "Mystery Box cannot be purchased alone. Please add something else to your cart.",
         target: "cart",
       });
     }
