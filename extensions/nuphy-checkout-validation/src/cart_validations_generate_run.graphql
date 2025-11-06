@@ -1,7 +1,22 @@
 query CartValidationsGenerateRunInput {
+  buyerJourney {
+    step
+  }
   cart {
     lines {
+      id
       quantity
+      merchandise {
+        __typename
+        ... on ProductVariant {
+          product {
+            id
+            metafield(namespace: "custom", key: "limits") {
+              value
+            }
+          }
+        }
+      }
     }
   }
 }
