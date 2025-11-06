@@ -1,0 +1,17 @@
+api_version = "2025-07"
+
+[[extensions]]
+name = "t:name"
+handle = "nuphy-checkout-validation"
+type = "function"
+uid = "c60ff014-7fde-23e9-5da5-aedb8dd1dfbf0cebb5b0"
+description = "t:description"
+
+  [[extensions.targeting]]
+  target = "cart.validations.generate.run"
+  input_query = "src/cart_validations_generate_run.graphql"
+  export = "cart-validations-generate-run"
+
+  [extensions.build]
+  command = ""
+  path = "dist/function.wasm"
