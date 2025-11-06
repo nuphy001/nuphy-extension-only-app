@@ -44,10 +44,23 @@ export function cartValidationsGenerateRun(input) {
   // 阶段判断：进入结算页 + 提交结算时执行
   const step = input?.buyerJourney?.step;
   const isCheckoutPhase =
-    step === "CHECKOUT_START" || // 进入结算页时
+    step === "CHECKOUT_INTERACTION" || // 进入结算页时
     step === "CHECKOUT_COMPLETION"; // 点击提交结算时
 
   if (!isCheckoutPhase) {
+    return { operations: [{ validationAdd: { errors: [] } }] };
+  }
+
+  // 快速检查:如果购物车中没有敏感产品,直接返回
+  const hasSensitiveProducts = input.cart.lines.some((line) => {
+    const productId = line.merchandise?.product?.id;
+    return (
+      productId &&
+      (MYSTERY_BOX_IDS.has(productId) || DOLLAR_PRODUCT_IDS.has(productId))
+    );
+  });
+
+  if (!hasSensitiveProducts) {
     return { operations: [{ validationAdd: { errors: [] } }] };
   }
 
