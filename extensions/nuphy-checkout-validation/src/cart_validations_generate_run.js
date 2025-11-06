@@ -28,7 +28,7 @@ const CONFIG = {
       "gid://shopify/Product/7867007238253", // Black Friday Mystery Box - $0.99
     ]),
     DOLLAR_PRODUCT_IDS: new Set([
-      "gid://shopify/Product/7824752115821", // WH80 1 Dollar Deposit
+      "gid://shopify/Product/7868318449773", // WH80 1 Dollar Deposit
       "gid://shopify/Product/7843318890605", // Node75 1 Dollar Deposit
     ]),
   },
