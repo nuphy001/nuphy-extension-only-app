@@ -22,7 +22,6 @@ extensions/*/dist
 # lock files
 
 .idea
-.shopify
 .vscode
 
 
