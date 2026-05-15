@@ -60,15 +60,22 @@ export function goboFreeGiftDiscountFunction(input) {
   }
 
   // 有赠品行 → 产出 productDiscountsAdd operation，把所有 targets 一次性打 100% off。
-  // Shopify 2025-07+ Cart Discount Function 2.0 格式：flat operations，
-  // 每个 operation 是一个 productDiscountsAdd，内含 candidates 数组（但通常每个 candidates 一条）。
+  // Shopify 2025-07+ Cart Discount Function 格式要求：
+  //   - targets 里是 cartLine 对象数组（含 id）
+  //   - selectionStrategy 必须显式指定（如 "FIRST"）
+  const cartLineTargets = targets.map((target) => ({
+    cartLine: {
+      id: target.cartLineTarget.id,
+    },
+  }));
+
   return {
     operations: [
       {
         productDiscountsAdd: {
           candidates: [
             {
-              targets,
+              targets: cartLineTargets,
               value: {
                 percentage: {
                   value: FREE_PERCENTAGE,
@@ -77,6 +84,7 @@ export function goboFreeGiftDiscountFunction(input) {
               message: DISCOUNT_MESSAGE,
             },
           ],
+          selectionStrategy: "FIRST",
         },
       },
     ],

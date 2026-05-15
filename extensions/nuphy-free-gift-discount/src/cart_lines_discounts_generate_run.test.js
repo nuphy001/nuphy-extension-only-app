@@ -53,11 +53,12 @@ describe('goboFreeGiftDiscountFunction', () => {
       const op = result.operations[0];
       expect(op.productDiscountsAdd).toBeDefined();
       expect(op.productDiscountsAdd.candidates).toHaveLength(1);
+      expect(op.productDiscountsAdd.selectionStrategy).toBe('FIRST');
 
       const candidate = op.productDiscountsAdd.candidates[0];
       expect(candidate.message).toBe('Free Gift');
       expect(candidate.targets).toEqual([
-        { cartLineTarget: { id: 'L1', quantity: null } },
+        { cartLine: { id: 'L1' } },
       ]);
       expect(candidate.value).toEqual({ percentage: { value: 100 } });
     });
@@ -72,7 +73,7 @@ describe('goboFreeGiftDiscountFunction', () => {
 
       expect(result.operations).toHaveLength(1);
       expect(result.operations[0].productDiscountsAdd.candidates[0].targets).toEqual([
-        { cartLineTarget: { id: 'L2', quantity: null } },
+        { cartLine: { id: 'L2' } },
       ]);
     });
 
@@ -86,8 +87,8 @@ describe('goboFreeGiftDiscountFunction', () => {
 
       expect(result.operations).toHaveLength(1);
       expect(result.operations[0].productDiscountsAdd.candidates[0].targets).toEqual([
-        { cartLineTarget: { id: 'L1', quantity: null } },
-        { cartLineTarget: { id: 'L2', quantity: null } },
+        { cartLine: { id: 'L1' } },
+        { cartLine: { id: 'L2' } },
       ]);
     });
 
@@ -103,8 +104,8 @@ describe('goboFreeGiftDiscountFunction', () => {
 
       expect(result.operations).toHaveLength(1);
       expect(result.operations[0].productDiscountsAdd.candidates[0].targets).toEqual([
-        { cartLineTarget: { id: 'L1', quantity: null } },
-        { cartLineTarget: { id: 'L3', quantity: null } },
+        { cartLine: { id: 'L1' } },
+        { cartLine: { id: 'L3' } },
       ]);
     });
   });
