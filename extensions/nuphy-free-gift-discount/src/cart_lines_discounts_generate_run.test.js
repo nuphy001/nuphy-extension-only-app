@@ -44,22 +44,19 @@ describe('cartLinesDiscountsGenerateRun', () => {
   });
 
   describe('有赠品行场景（应产生 100% off 折扣）', () => {
-    it('用例 4：单行 gift → 1 个 productDiscountsAdd，targets 指向该行，percentage = 100', () => {
+    it('用例 4：单行 gift → 1 个 discount operation，targets 指向该行，percentage = 100', () => {
       const result = cartLinesDiscountsGenerateRun(
         makeInput([makeLine('L1', 'gift')])
       );
 
       expect(result.operations).toHaveLength(1);
       const op = result.operations[0];
-      expect(op.productDiscountsAdd.candidates).toHaveLength(1);
-
-      const candidate = op.productDiscountsAdd.candidates[0];
-      expect(candidate.message).toBe('Free Gift');
-      expect(candidate.targets).toEqual([
+      expect(op.discount).toBeDefined();
+      expect(op.discount.message).toBe('Free Gift');
+      expect(op.discount.targets).toEqual([
         { cartLineTarget: { id: 'L1', quantity: null } },
       ]);
-      expect(candidate.value).toEqual({ percentage: { value: 100 } });
-      expect(op.productDiscountsAdd.selectionStrategy).toBe('FIRST');
+      expect(op.discount.value).toEqual({ percentage: { value: 100 } });
     });
 
     it('用例 5：主品（无属性） + 1 件赠品 → 只对赠品行打折', () => {
@@ -71,12 +68,12 @@ describe('cartLinesDiscountsGenerateRun', () => {
       );
 
       expect(result.operations).toHaveLength(1);
-      expect(result.operations[0].productDiscountsAdd.candidates[0].targets).toEqual([
+      expect(result.operations[0].discount.targets).toEqual([
         { cartLineTarget: { id: 'L2', quantity: null } },
       ]);
     });
 
-    it('用例 6：多件赠品 → targets 同时包含所有赠品行 id', () => {
+    it('用例 6：多件赠品 → 产出多个 discount operation，每个 operation 对应一个赠品行', () => {
       const result = cartLinesDiscountsGenerateRun(
         makeInput([
           makeLine('L1', 'gift'),
@@ -84,14 +81,16 @@ describe('cartLinesDiscountsGenerateRun', () => {
         ])
       );
 
-      expect(result.operations).toHaveLength(1);
-      expect(result.operations[0].productDiscountsAdd.candidates[0].targets).toEqual([
+      expect(result.operations).toHaveLength(2);
+      expect(result.operations[0].discount.targets).toEqual([
         { cartLineTarget: { id: 'L1', quantity: null } },
+      ]);
+      expect(result.operations[1].discount.targets).toEqual([
         { cartLineTarget: { id: 'L2', quantity: null } },
       ]);
     });
 
-    it('用例 7：gift 与其它未知属性混入 → 只 gift 进 targets', () => {
+    it('用例 7：gift 与其它未知属性混入 → 只 gift 产出 discount operation', () => {
       const result = cartLinesDiscountsGenerateRun(
         makeInput([
           makeLine('L1', 'gift'),
@@ -101,9 +100,11 @@ describe('cartLinesDiscountsGenerateRun', () => {
         ])
       );
 
-      expect(result.operations).toHaveLength(1);
-      expect(result.operations[0].productDiscountsAdd.candidates[0].targets).toEqual([
+      expect(result.operations).toHaveLength(2);
+      expect(result.operations[0].discount.targets).toEqual([
         { cartLineTarget: { id: 'L1', quantity: null } },
+      ]);
+      expect(result.operations[1].discount.targets).toEqual([
         { cartLineTarget: { id: 'L3', quantity: null } },
       ]);
     });

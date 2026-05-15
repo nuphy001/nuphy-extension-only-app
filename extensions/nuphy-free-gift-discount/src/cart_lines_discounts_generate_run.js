@@ -59,24 +59,19 @@ export function cartLinesDiscountsGenerateRun(input) {
     return EMPTY_RESULT;
   }
 
-  // 有赠品行 → 产出一条 productDiscountsAdd operation，把所有 targets 一次性打 100% off。
-  //   - 单 candidate：本函数语义就是「全部归零」，无需多 candidate。
-  //   - selectionStrategy "FIRST"：当多个 candidate 并存时按声明顺序取第一个；
-  //     本函数只产出一条 candidate，"FIRST" 等价于「就用它」。
+  // 有赠品行 → 产出一条 discount operation，把所有 targets 一次性打 100% off。
+  // Shopify 2025-07+ Cart Discount Function 2.0 格式：flat operations，每个 operation 对应一个折扣。
   return {
-    operations: [
-      {
-        productDiscountsAdd: {
-          candidates: [
-            {
-              message: DISCOUNT_MESSAGE,
-              targets,
-              value: { percentage: { value: FREE_PERCENTAGE } },
-            },
-          ],
-          selectionStrategy: "FIRST",
+    operations: targets.map((target) => ({
+      discount: {
+        targets: [target],
+        value: {
+          percentage: {
+            value: FREE_PERCENTAGE,
+          },
         },
+        message: DISCOUNT_MESSAGE,
       },
-    ],
+    })),
   };
 }
