@@ -2,6 +2,28 @@
 
 This is a template for building an [extension-only Shopify app](https://shopify.dev/docs/apps/build/app-extensions/build-extension-only-app). It contains the basics for building a Shopify app that uses only app extensions.
 
+---
+
+## Extensions in this App
+
+`client_id = "1dfa5ac4c1e95115a158b547c4228540"` · 已安装授权到生产店铺 · 共存多个 Function extension。
+
+| Handle | Target | 作用 | 文档 |
+| --- | --- | --- | --- |
+| `nuphy-checkout-validation` | `cart.validations.generate.run` | 结账阶段对盲盒 / 押金产品做组合校验，阻止非法下单 | [extensions/nuphy-checkout-validation/](extensions/nuphy-checkout-validation/) |
+| `nuphy-free-gift-discount` | `cart.lines.discounts.generate.run` | 给购物车里带 `_promo_role=gift` 属性的行打 100% off，落地 BOGO 赠品 0 元结账 | [extensions/nuphy-free-gift-discount/README.md](extensions/nuphy-free-gift-discount/README.md) |
+
+### 常用命令（仓库根）
+
+```bash
+npm install                                          # 装全部 workspace 依赖
+npx shopify app build                                # 构建所有 extension 的 wasm
+npx shopify app deploy                               # 部署所有 extension 到当前 App
+npm --workspace <handle> run test -- --run           # 跑指定 extension 的 vitest 用例
+```
+
+---
+
 This template doesn't include a server or the ability to embed a page in the Shopify Admin. If you want either of these capabilities, choose the [Remix app template](https://github.com/Shopify/shopify-app-template-remix) instead.
 
 Whether you choose to use this template or another one, you can use your preferred package manager and the Shopify CLI with [these steps](#installing-the-template).

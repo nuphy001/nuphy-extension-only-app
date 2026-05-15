@@ -1,0 +1,20 @@
+# 折扣函数输入查询
+# ----------------------------------------
+# Shopify 在调用本 Function 时，会按这份查询从购物车上下文中抽取数据，
+# 作为 `cartLinesDiscountsGenerateRun(input)` 的 input.cart 注入。
+# 只查必要字段：
+#   - line.id        : productDiscountsAdd 的 cartLineTarget 必须的引用
+#   - _promo_role    : 由前端 BOGO 引擎写入的「这一行是赠品」便利贴；本函数唯一判据
+# 故意不取的字段（避免 Function input 配额浪费）：
+#   - merchandise / quantity / cost / 其它 attribute（如 _promo_id、_promo_main）
+#   - 这些字段如未来需要做「按 campaign 区分折扣信息」再加。
+query CartLinesDiscountsGenerateRun {
+  cart {
+    lines {
+      id
+      attribute(key: "_promo_role") {
+        value
+      }
+    }
+  }
+}
