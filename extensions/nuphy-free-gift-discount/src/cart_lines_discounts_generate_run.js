@@ -44,7 +44,7 @@ const DISCOUNT_MESSAGE = "Free Gift";
  * @param {RunInput} input - 由 src/*.graphql 声明字段，Shopify 在结账阶段注入
  * @returns {RunResult}
  */
-export function cartLinesDiscountsGenerateRun(input) {
+export function goboFreeGiftDiscountFunction(input) {
   // 步骤 1：过滤出所有带 _promo_role=gift 属性的行。
   //   - line.attribute 为 null（行未挂任何属性 / 未挂该 key）时短路为 undefined。
   //   - line.attribute.value 为其它字符串（如 "main"、"trigger"）时也不命中。

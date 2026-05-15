@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { cartLinesDiscountsGenerateRun } from './cart_lines_discounts_generate_run';
+import { goboFreeGiftDiscountFunction } from './cart_lines_discounts_generate_run';
 
 /**
  * 测试构造约定：
@@ -21,22 +21,22 @@ function makeInput(lines) {
   return { cart: { lines } };
 }
 
-describe('cartLinesDiscountsGenerateRun', () => {
+describe('goboFreeGiftDiscountFunction', () => {
   describe('无赠品行场景（应返回空 operations）', () => {
     it('用例 1：购物车为空 → 不产生任何折扣', () => {
-      const result = cartLinesDiscountsGenerateRun(makeInput([]));
+      const result = goboFreeGiftDiscountFunction(makeInput([]));
       expect(result).toEqual({ operations: [] });
     });
 
     it('用例 2：行未挂 _promo_role 属性（attribute = null） → 不产生任何折扣', () => {
-      const result = cartLinesDiscountsGenerateRun(
+      const result = goboFreeGiftDiscountFunction(
         makeInput([makeLine('L1', null)])
       );
       expect(result).toEqual({ operations: [] });
     });
 
     it('用例 3：行属性是其它值（不是 "gift"） → 不产生任何折扣', () => {
-      const result = cartLinesDiscountsGenerateRun(
+      const result = goboFreeGiftDiscountFunction(
         makeInput([makeLine('L1', 'main')])
       );
       expect(result).toEqual({ operations: [] });
@@ -45,7 +45,7 @@ describe('cartLinesDiscountsGenerateRun', () => {
 
   describe('有赠品行场景（应产生 100% off 折扣）', () => {
     it('用例 4：单行 gift → 1 个 discount operation，targets 指向该行，percentage = 100', () => {
-      const result = cartLinesDiscountsGenerateRun(
+      const result = goboFreeGiftDiscountFunction(
         makeInput([makeLine('L1', 'gift')])
       );
 
@@ -60,7 +60,7 @@ describe('cartLinesDiscountsGenerateRun', () => {
     });
 
     it('用例 5：主品（无属性） + 1 件赠品 → 只对赠品行打折', () => {
-      const result = cartLinesDiscountsGenerateRun(
+      const result = goboFreeGiftDiscountFunction(
         makeInput([
           makeLine('L1', null),    // 主品行
           makeLine('L2', 'gift'),  // 赠品行
@@ -74,7 +74,7 @@ describe('cartLinesDiscountsGenerateRun', () => {
     });
 
     it('用例 6：多件赠品 → 产出多个 discount operation，每个 operation 对应一个赠品行', () => {
-      const result = cartLinesDiscountsGenerateRun(
+      const result = goboFreeGiftDiscountFunction(
         makeInput([
           makeLine('L1', 'gift'),
           makeLine('L2', 'gift'),
@@ -91,7 +91,7 @@ describe('cartLinesDiscountsGenerateRun', () => {
     });
 
     it('用例 7：gift 与其它未知属性混入 → 只 gift 产出 discount operation', () => {
-      const result = cartLinesDiscountsGenerateRun(
+      const result = goboFreeGiftDiscountFunction(
         makeInput([
           makeLine('L1', 'gift'),
           makeLine('L2', 'trigger'),
