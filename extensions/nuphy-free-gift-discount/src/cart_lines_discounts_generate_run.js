@@ -59,19 +59,26 @@ export function goboFreeGiftDiscountFunction(input) {
     return EMPTY_RESULT;
   }
 
-  // 有赠品行 → 产出一条 discount operation，把所有 targets 一次性打 100% off。
-  // Shopify 2025-07+ Cart Discount Function 2.0 格式：flat operations，每个 operation 对应一个折扣。
+  // 有赠品行 → 产出 productDiscountsAdd operation，把所有 targets 一次性打 100% off。
+  // Shopify 2025-07+ Cart Discount Function 2.0 格式：flat operations，
+  // 每个 operation 是一个 productDiscountsAdd，内含 candidates 数组（但通常每个 candidates 一条）。
   return {
-    operations: targets.map((target) => ({
-      discount: {
-        targets: [target],
-        value: {
-          percentage: {
-            value: FREE_PERCENTAGE,
-          },
+    operations: [
+      {
+        productDiscountsAdd: {
+          candidates: [
+            {
+              targets,
+              value: {
+                percentage: {
+                  value: FREE_PERCENTAGE,
+                },
+              },
+              message: DISCOUNT_MESSAGE,
+            },
+          ],
         },
-        message: DISCOUNT_MESSAGE,
       },
-    })),
+    ],
   };
 }
