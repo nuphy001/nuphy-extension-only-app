@@ -3,8 +3,8 @@
 client_id = "1dfa5ac4c1e95115a158b547c4228540"
 name = "nuphy-extension-only-app"
 application_url = "https://shopify.dev/apps/default-app-home"
-embedded = true
-
+# 如果是 true 那么就会无法配置那个 chekcout 配置，跳转走
+embedded = false
 [build]
 automatically_update_urls_on_dev = true
 
