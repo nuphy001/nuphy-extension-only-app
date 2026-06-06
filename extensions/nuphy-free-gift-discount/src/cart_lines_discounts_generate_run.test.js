@@ -5,9 +5,12 @@ import { goboFreeGiftDiscountFunction } from './cart_lines_discounts_generate_ru
  * 测试常量（与 cart_lines_discounts_generate_run.js 内 CAMPAIGNS 同步）
  */
 const CAMPAIGN_ID = 'bogo-product-accessory-2026';
-const TRIGGER_A = 'gid://shopify/ProductVariant/45206179905645';
-const TRIGGER_B = 'gid://shopify/ProductVariant/45206186459245';
-const GIFT_VARIANT = 'gid://shopify/ProductVariant/45206179774573';
+// TRIGGER_A: Halo75 V2 — Ionic White / Mint (37gf)
+const TRIGGER_A = 'gid://shopify/ProductVariant/45054166040685';
+// TRIGGER_B: Halo65 V2 — Ionic White / Mint (37gf)
+const TRIGGER_B = 'gid://shopify/ProductVariant/41414603243629';
+// GIFT_VARIANT: Wrist Rest for QMK (唯一变体)
+const GIFT_VARIANT = 'gid://shopify/ProductVariant/45048753029229';
 const RANDOM_VARIANT = 'gid://shopify/ProductVariant/99999999999999';
 
 /**
