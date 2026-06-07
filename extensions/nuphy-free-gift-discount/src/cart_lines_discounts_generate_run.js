@@ -20,8 +20,9 @@
  *   4) _promo_main_variant 必须是该 campaign 的合法 trigger，且必须真实存在于
  *      cart 的非赠品行内（== 用户确实买了主品）
  *
- * 数量截断：通过输出端 cartLine.quantity = 1 限定，只对该行 1 件打 100% off，
- * 其余件数原价（防 risk 3：数量放大）。
+ * 数量截断（1:1）：免单数量 = min(赠品行数量, 该 campaign 主品购买总量)。
+ * 买 N 个主品最多免 N 个赠品；赠品行被改大 / 主品买得少时，多出的件数按原价收费
+ * （防 risk 3：数量放大）。
  *
  * ⚠ Keep CAMPAIGNS in sync with:
  *   nuphy-headless-shop/src/lib/promotion/config.ts
@@ -40,7 +41,7 @@ const DISCOUNT_MESSAGE = "Free Gift";
 
 // ─── Campaign config（与 headless-shop config.ts 同步） ───────────────────────
 // 主品：NuPhy Halo75 V2 / Halo96 V2 / Halo65 V2 全部变体
-// 赠品：Wrist Rest for QMK（唯一变体）
+// 赠品：Free Halo V2 Exclusive Wrist Rest (Random Color)（Product 8054097412205，唯一变体）
 const CAMPAIGNS = [
   {
     id: "bogo-product-accessory-2026",
@@ -112,8 +113,8 @@ const CAMPAIGNS = [
       "gid://shopify/ProductVariant/41414605766765",
     ]),
     giftVariantIds: new Set([
-      // Wrist Rest for QMK (Product 8051326419053)
-      "gid://shopify/ProductVariant/45048753029229",
+      // Free Halo V2 Exclusive Wrist Rest (Random Color) (Product 8054097412205)
+      "gid://shopify/ProductVariant/45055271043181",
     ]),
   },
 ];
@@ -127,12 +128,27 @@ const CAMPAIGN_BY_ID = new Map(CAMPAIGNS.map((c) => [c.id, c]));
 export function goboFreeGiftDiscountFunction(input) {
   const lines = input.cart.lines;
 
-  // 收集购物车内所有非赠品行的 variant id，用于「主品在 cart 内」校验
+  // 单次遍历非赠品行：
+  //   nonGiftVariantIds   —— 「主品在 cart 内」校验（4b）用
+  //   remainingByCampaign —— 每个 campaign 的免单配额 = 该 campaign 全部 trigger variant
+  //                          在非赠品行内的 quantity 之和（即用户实际买了几个主品）
   const nonGiftVariantIds = new Set();
+  const remainingByCampaign = new Map();
   for (const line of lines) {
     if (line.attribute?.value === GIFT_ROLE) continue;
     const variantId = line.merchandise?.id;
-    if (variantId) nonGiftVariantIds.add(variantId);
+    if (!variantId) continue;
+    nonGiftVariantIds.add(variantId);
+    const qty = line.quantity ?? 0;
+    if (qty < 1) continue;
+    for (const campaign of CAMPAIGNS) {
+      if (campaign.triggerVariantIds.has(variantId)) {
+        remainingByCampaign.set(
+          campaign.id,
+          (remainingByCampaign.get(campaign.id) ?? 0) + qty,
+        );
+      }
+    }
   }
 
   // 4 层校验，全部通过才发折扣
@@ -157,11 +173,17 @@ export function goboFreeGiftDiscountFunction(input) {
     // 校验 4b：该主品必须真实存在于购物车的非赠品行（防只用赠品创建 cart）
     if (!nonGiftVariantIds.has(mainVariantId)) continue;
 
-    // 通过 → 输出 target，quantity:1 截断防数量放大
+    // 数量截断（1:1）：免单数 = min(赠品行数量, 该 campaign 剩余主品配额)。
+    // 攻击者把赠品行 qty 改大、或主品买得少时，只对配额内的件数免单，其余原价。
+    const remaining = remainingByCampaign.get(campaign.id) ?? 0;
+    const allowed = Math.min(line.quantity ?? 0, remaining);
+    if (allowed < 1) continue;
+    remainingByCampaign.set(campaign.id, remaining - allowed);
+
     cartLineTargets.push({
       cartLine: {
         id: line.id,
-        quantity: 1,
+        quantity: allowed,
       },
     });
   }

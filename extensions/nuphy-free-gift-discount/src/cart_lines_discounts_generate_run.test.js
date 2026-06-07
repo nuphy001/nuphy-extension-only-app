@@ -9,8 +9,8 @@ const CAMPAIGN_ID = 'bogo-product-accessory-2026';
 const TRIGGER_A = 'gid://shopify/ProductVariant/45054166040685';
 // TRIGGER_B: Halo65 V2 — Ionic White / Mint (37gf)
 const TRIGGER_B = 'gid://shopify/ProductVariant/41414603243629';
-// GIFT_VARIANT: Wrist Rest for QMK (唯一变体)
-const GIFT_VARIANT = 'gid://shopify/ProductVariant/45048753029229';
+// GIFT_VARIANT: Free Halo V2 Exclusive Wrist Rest (Random Color) (唯一变体)
+const GIFT_VARIANT = 'gid://shopify/ProductVariant/45055271043181';
 const RANDOM_VARIANT = 'gid://shopify/ProductVariant/99999999999999';
 
 /**
@@ -101,14 +101,42 @@ describe('goboFreeGiftDiscountFunction — 合法 BOGO 流程', () => {
     expect(getTargets(result)).toEqual([{ cartLine: { id: 'G1', quantity: 1 } }]);
   });
 
-  it('赠品 quantity=5 → 仍只对 1 件打折（防数量放大）', () => {
+  it('1 主品 + 赠品 quantity=5 → 仅免 1 件（按主品数量封顶，防放大）', () => {
     const gift = { ...legalGiftLine('G1'), quantity: 5 };
     const result = goboFreeGiftDiscountFunction(
-      makeInput([triggerLine('T1'), gift])
+      makeInput([triggerLine('T1'), gift]) // 主品 qty 默认 1 → 配额 1
     );
     expect(getTargets(result)).toEqual([
       { cartLine: { id: 'G1', quantity: 1 } }, // 仅 1 件免单，其余原价
     ]);
+  });
+
+  it('买 N 送 N：主品 qty3 + 赠品 qty3 → 免 3 件', () => {
+    const gift = { ...legalGiftLine('G1'), quantity: 3 };
+    const result = goboFreeGiftDiscountFunction(
+      makeInput([triggerLine('T1', TRIGGER_A, 3), gift])
+    );
+    expect(getTargets(result)).toEqual([{ cartLine: { id: 'G1', quantity: 3 } }]);
+  });
+
+  it('封顶：主品 qty2 + 赠品 qty5 → 只免 2 件（其余原价）', () => {
+    const gift = { ...legalGiftLine('G1'), quantity: 5 };
+    const result = goboFreeGiftDiscountFunction(
+      makeInput([triggerLine('T1', TRIGGER_A, 2), gift])
+    );
+    expect(getTargets(result)).toEqual([{ cartLine: { id: 'G1', quantity: 2 } }]);
+  });
+
+  it('多触发行数量求和：2×A + 1×B + 赠品 qty3 → 免 3 件', () => {
+    const gift = { ...legalGiftLine('G1'), quantity: 3 };
+    const result = goboFreeGiftDiscountFunction(
+      makeInput([
+        triggerLine('T1', TRIGGER_A, 2),
+        triggerLine('T2', TRIGGER_B, 1),
+        gift,
+      ])
+    );
+    expect(getTargets(result)).toEqual([{ cartLine: { id: 'G1', quantity: 3 } }]);
   });
 });
 
@@ -179,18 +207,36 @@ describe('goboFreeGiftDiscountFunction — 攻击场景（必须 FAIL，即不�
     });
     expect(goboFreeGiftDiscountFunction(makeInput([triggerLine(), gift]))).toEqual({ operations: [] });
   });
+
+  it('赠品行 quantity=0 → 不发折扣（allowed<1 截断）', () => {
+    const gift = { ...legalGiftLine('G1'), quantity: 0 };
+    expect(
+      goboFreeGiftDiscountFunction(makeInput([triggerLine('T1'), gift]))
+    ).toEqual({ operations: [] });
+  });
 });
 
 describe('goboFreeGiftDiscountFunction — 多 line 组合', () => {
-  it('多个合法赠品 → 都打折', () => {
+  it('多个赠品行共享 campaign 配额：主品 qty2 → 两行各免 1', () => {
     const gift1 = legalGiftLine('G1');
     const gift2 = { ...legalGiftLine('G2') };
     const result = goboFreeGiftDiscountFunction(
-      makeInput([triggerLine('T1'), gift1, gift2])
+      makeInput([triggerLine('T1', TRIGGER_A, 2), gift1, gift2])
     );
     expect(getTargets(result)).toEqual([
       { cartLine: { id: 'G1', quantity: 1 } },
       { cartLine: { id: 'G2', quantity: 1 } },
+    ]);
+  });
+
+  it('配额封顶跨行：主品 qty1 + 两个赠品行 → 只免第一行 1 件', () => {
+    const gift1 = legalGiftLine('G1');
+    const gift2 = { ...legalGiftLine('G2') };
+    const result = goboFreeGiftDiscountFunction(
+      makeInput([triggerLine('T1', TRIGGER_A, 1), gift1, gift2])
+    );
+    expect(getTargets(result)).toEqual([
+      { cartLine: { id: 'G1', quantity: 1 } }, // 配额 1 被 G1 用完，G2 不免单
     ]);
   });
 
