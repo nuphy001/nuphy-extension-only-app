@@ -6,71 +6,52 @@
  * @typedef {import("../generated/api").ValidationError} ValidationError
  */
 
-// Environment configuration - set to 'production' or 'test'
-const ENVIRONMENT = "production"; // Change to 'production' for production environment
-// const ENVIRONMENT = "production"; // Change to 'test' for production environment
+const MYSTERY_BOX_ID = "gid://shopify/Product/8122230308973";
 
-// Configuration objects for different environments
-const CONFIG = {
-  test: {
-    MYSTERY_BOX_IDS: new Set([
-      "gid://shopify/Product/8953675907329", // 盲盒产品一
-      "gid://shopify/Product/8953675940097", // 盲盒产品二
-    ]),
-    DOLLAR_PRODUCT_IDS: new Set([
-      "gid://shopify/Product/8953676398849", // WH80 1 Dollar Deposit
-      "gid://shopify/Product/8953676103937", // Node75 1 Dollar Deposit
-    ]),
-  },
-  production: {
-    MYSTERY_BOX_IDS: new Set([
-      "gid://shopify/Product/7867011006573", // Black Friday Mystery Box - $4.99
-      "gid://shopify/Product/7867007238253", // Black Friday Mystery Box - $0.99
-    ]),
-    DOLLAR_PRODUCT_IDS: new Set([
-      "gid://shopify/Product/7868318449773", // WH80 1 Dollar Deposit
-      "gid://shopify/Product/7843318890605", // Node75 1 Dollar Deposit
-    ]),
-  },
-};
-
-// Get the current configuration based on environment
-const { MYSTERY_BOX_IDS, DOLLAR_PRODUCT_IDS } = CONFIG[ENVIRONMENT];
+const PARTICIPATING_PRODUCT_IDS = new Set([
+  "gid://shopify/Product/7070873976941",
+  "gid://shopify/Product/7006605148269",
+  "gid://shopify/Product/7092124516461",
+  "gid://shopify/Product/7351299604589",
+  "gid://shopify/Product/7193319899245",
+  "gid://shopify/Product/7296925237357",
+  "gid://shopify/Product/7952283861101",
+  "gid://shopify/Product/7645026746477",
+  "gid://shopify/Product/8030986764397",
+  "gid://shopify/Product/7883010736237",
+  "gid://shopify/Product/8024452825197",
+  "gid://shopify/Product/7930955038829",
+  "gid://shopify/Product/7930916569197",
+  "gid://shopify/Product/7926857203821",
+  "gid://shopify/Product/7637823291501",
+  "gid://shopify/Product/7493576720493",
+  "gid://shopify/Product/7544399757421",
+  "gid://shopify/Product/7169059356781",
+  "gid://shopify/Product/7090027626605",
+  "gid://shopify/Product/7831710236781",
+]);
 
 export function cartValidationsGenerateRun(input) {
   const errors = [];
 
-  // 阶段判断：仅在结账阶段执行（CHECKOUT_INTERACTION 或 CHECKOUT_COMPLETION）
-  // 阶段判断：进入结算页 + 提交结算时执行
   const step = input?.buyerJourney?.step;
-  const isCheckoutPhase =
-    step === "CHECKOUT_INTERACTION" || // 进入结算页时
-    step === "CHECKOUT_COMPLETION"; // 点击提交结算时
-
-  if (!isCheckoutPhase) {
+  if (step !== "CHECKOUT_INTERACTION" && step !== "CHECKOUT_COMPLETION") {
     return { operations: [{ validationAdd: { errors: [] } }] };
   }
 
-  // 快速检查:如果购物车中没有敏感产品,直接返回
-  const hasSensitiveProducts = input.cart.lines.some((line) => {
-    const productId = line.merchandise?.product?.id;
-    return (
-      productId &&
-      (MYSTERY_BOX_IDS.has(productId) || DOLLAR_PRODUCT_IDS.has(productId))
-    );
-  });
+  // 快速检查：购物车中是否有盲盒产品
+  const hasMysteryBox = input.cart.lines.some(
+    (line) => line.merchandise?.product?.id === MYSTERY_BOX_ID
+  );
 
-  if (!hasSensitiveProducts) {
+  if (!hasMysteryBox) {
     return { operations: [{ validationAdd: { errors: [] } }] };
   }
 
-  // 统计盲盒产品和1美元产品的数量
-  let mysteryBoxQuantity = 0; // 盲盒产品总数量（盲盒产品一 + 盲盒产品二）
-  let dollarProductExists = false; // 是否存在1美元产品（任意一个）
-  let hasOtherProducts = false; // 是否存在其他产品
+  let mysteryBoxQuantity = 0;
+  let hasOtherProducts = false;
+  let hasParticipatingProduct = false;
 
-  // 性能优化：使用 for...of 替代 forEach，支持提前退出（虽然当前业务逻辑需要完整遍历）
-  // 性能优化：减少重复的属性访问
   for (const line of input.cart.lines) {
     const merchandise = line.merchandise;
     const productId =
@@ -80,54 +61,40 @@ export function cartValidationsGenerateRun(input) {
 
     if (!productId) continue;
 
-    // 性能优化：使用 Set.has() 实现 O(1) 查找，替代多次字符串比较
-    if (MYSTERY_BOX_IDS.has(productId)) {
+    if (productId === MYSTERY_BOX_ID) {
       mysteryBoxQuantity += line.quantity;
-    } else if (DOLLAR_PRODUCT_IDS.has(productId)) {
-      dollarProductExists = true;
     } else {
       hasOtherProducts = true;
+      if (PARTICIPATING_PRODUCT_IDS.has(productId)) {
+        hasParticipatingProduct = true;
+      }
     }
   }
 
-  // 性能优化：合并条件判断，减少重复检查
   if (mysteryBoxQuantity > 0) {
-    // 规则1: 盲盒产品数量不能超过1个（盲盒产品一和盲盒产品二的总数量）
     if (mysteryBoxQuantity > 1) {
       errors.push({
-        // message: "盲盒产品数量不能超过1个",
         message: "You can only purchase one Mystery Box per order.",
         target: "cart",
       });
     }
 
-    // 规则2: 盲盒产品和1美元产品不能同时出现
-    if (dollarProductExists) {
+    if (!hasOtherProducts) {
       errors.push({
-        // message: "盲盒产品和定金不能同时出现",
-        message: "Mystery Box and deposit products can’t be bought together. ",
-        target: "cart",
-      });
-    }
-
-    // 规则3: 盲盒产品不能单独购买
-    if (!hasOtherProducts && !dollarProductExists) {
-      errors.push({
-        // message: "盲盒产品不能单独购买,请添加其他产品到购物车",
         message:
           "Mystery Box cannot be purchased alone. Please add something else to your cart.",
+        target: "cart",
+      });
+    } else if (!hasParticipatingProduct) {
+      errors.push({
+        message:
+          "Mystery Box must be purchased with a participating product.",
         target: "cart",
       });
     }
   }
 
-  const operations = [
-    {
-      validationAdd: {
-        errors,
-      },
-    },
-  ];
-
-  return { operations };
+  return {
+    operations: [{ validationAdd: { errors } }],
+  };
 }
