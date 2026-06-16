@@ -4,13 +4,35 @@ import { goboFreeGiftDiscountFunction } from './cart_lines_discounts_generate_ru
 /**
  * 测试常量（与 cart_lines_discounts_generate_run.js 内 CAMPAIGNS 同步）
  */
-const CAMPAIGN_ID = 'bogo-product-accessory-2026';
-// TRIGGER_A: Halo75 V2 — Ionic White / Mint (37gf)
-const TRIGGER_A = 'gid://shopify/ProductVariant/45054166040685';
-// TRIGGER_B: Halo65 V2 — Ionic White / Mint (37gf)
-const TRIGGER_B = 'gid://shopify/ProductVariant/41414603243629';
-// GIFT_VARIANT: Free Halo V2 Exclusive Wrist Rest (Random Color) (唯一变体)
-const GIFT_VARIANT = 'gid://shopify/ProductVariant/45055271043181';
+
+// ─── Air V3 campaign ─────────────────────────────────────────────────────────
+const CAMPAIGN_AIR_V3 = 'bogo-air-v3-wrist-rest-2026';
+// Air75 V3 — Nova White / Blush nano / ANSI
+const TRIGGER_AIR_V3_A = 'gid://shopify/ProductVariant/42579051315309';
+// Air65 V3 — Nova White / Blush nano / ANSI
+const TRIGGER_AIR_V3_B = 'gid://shopify/ProductVariant/43879425736813';
+// Wrist Rest（Air V3 赠品）
+const GIFT_AIR_V3 = 'gid://shopify/ProductVariant/45330731794541';
+
+// ─── Node campaign ────────────────────────────────────────────────────────────
+const CAMPAIGN_NODE = 'bogo-node-wrist-rest-2026';
+// Node 75 Low-profile / ANSI / Lunar White / Red nano
+const TRIGGER_NODE = 'gid://shopify/ProductVariant/43791048835181';
+// Wrist Rest（Node 赠品）
+const GIFT_NODE = 'gid://shopify/ProductVariant/45194508664941';
+
+// ─── Kick75 campaign ──────────────────────────────────────────────────────────
+const CAMPAIGN_KICK75 = 'bogo-kick75-3d-accessory-2026';
+// Kick75 Low / NuPhyIO / Red
+const TRIGGER_KICK75 = 'gid://shopify/ProductVariant/43805710352493';
+// 3D Printed Accessory（Kick75 赠品）
+const GIFT_KICK75 = 'gid://shopify/ProductVariant/45329023795309';
+
+// ─── 兼容别名（给下方通用测试用） ────────────────────────────────────────────
+const CAMPAIGN_ID = CAMPAIGN_AIR_V3;
+const TRIGGER_A = TRIGGER_AIR_V3_A;
+const TRIGGER_B = TRIGGER_AIR_V3_B;
+const GIFT_VARIANT = GIFT_AIR_V3;
 const RANDOM_VARIANT = 'gid://shopify/ProductVariant/99999999999999';
 
 /**
@@ -265,5 +287,117 @@ describe('goboFreeGiftDiscountFunction — 多 line 组合', () => {
     expect(getTargets(result)).toEqual([
       { cartLine: { id: 'G1', quantity: 1 } },
     ]);
+  });
+});
+
+describe('goboFreeGiftDiscountFunction — 跨 campaign 混买场景', () => {
+  /**
+   * 辅助：构造指定 campaign 的合法赠品行
+   */
+  function giftLine({ id, variantId, mainVariant, campaignId, qty = 1 }) {
+    return {
+      ...makeLine({ id, variantId, role: 'gift', promoId: campaignId, mainVariant }),
+      quantity: qty,
+    };
+  }
+
+  it('Air V3 + Node 各买 1 → 各送 1 个 Wrist Rest（两个 campaign 独立结算）', () => {
+    const airTrigger = makeLine({ id: 'T_AIR', variantId: TRIGGER_AIR_V3_A });
+    const nodeTrigger = makeLine({ id: 'T_NODE', variantId: TRIGGER_NODE });
+    const airGift = giftLine({
+      id: 'G_AIR', variantId: GIFT_AIR_V3,
+      mainVariant: TRIGGER_AIR_V3_A, campaignId: CAMPAIGN_AIR_V3,
+    });
+    const nodeGift = giftLine({
+      id: 'G_NODE', variantId: GIFT_NODE,
+      mainVariant: TRIGGER_NODE, campaignId: CAMPAIGN_NODE,
+    });
+
+    const result = goboFreeGiftDiscountFunction(
+      makeInput([airTrigger, nodeTrigger, airGift, nodeGift])
+    );
+    expect(getTargets(result)).toEqual([
+      { cartLine: { id: 'G_AIR', quantity: 1 } },
+      { cartLine: { id: 'G_NODE', quantity: 1 } },
+    ]);
+  });
+
+  it('Air V3 + Node + Kick75 各买 1 → 送 Air 手托 + Node 手托 + Kick75 3D 配件', () => {
+    const airTrigger = makeLine({ id: 'T_AIR', variantId: TRIGGER_AIR_V3_A });
+    const nodeTrigger = makeLine({ id: 'T_NODE', variantId: TRIGGER_NODE });
+    const kickTrigger = makeLine({ id: 'T_KICK', variantId: TRIGGER_KICK75 });
+    const airGift = giftLine({
+      id: 'G_AIR', variantId: GIFT_AIR_V3,
+      mainVariant: TRIGGER_AIR_V3_A, campaignId: CAMPAIGN_AIR_V3,
+    });
+    const nodeGift = giftLine({
+      id: 'G_NODE', variantId: GIFT_NODE,
+      mainVariant: TRIGGER_NODE, campaignId: CAMPAIGN_NODE,
+    });
+    const kickGift = giftLine({
+      id: 'G_KICK', variantId: GIFT_KICK75,
+      mainVariant: TRIGGER_KICK75, campaignId: CAMPAIGN_KICK75,
+    });
+
+    const result = goboFreeGiftDiscountFunction(
+      makeInput([airTrigger, nodeTrigger, kickTrigger, airGift, nodeGift, kickGift])
+    );
+    expect(getTargets(result)).toEqual([
+      { cartLine: { id: 'G_AIR', quantity: 1 } },
+      { cartLine: { id: 'G_NODE', quantity: 1 } },
+      { cartLine: { id: 'G_KICK', quantity: 1 } },
+    ]);
+  });
+
+  it('Air V3 买 2 → 送 2 个手托；Node 买 1 → 送 1 个手托（各 campaign 配额独立）', () => {
+    const airTrigger = { ...makeLine({ id: 'T_AIR', variantId: TRIGGER_AIR_V3_A }), quantity: 2 };
+    const nodeTrigger = makeLine({ id: 'T_NODE', variantId: TRIGGER_NODE });
+    const airGift = giftLine({
+      id: 'G_AIR', variantId: GIFT_AIR_V3,
+      mainVariant: TRIGGER_AIR_V3_A, campaignId: CAMPAIGN_AIR_V3, qty: 2,
+    });
+    const nodeGift = giftLine({
+      id: 'G_NODE', variantId: GIFT_NODE,
+      mainVariant: TRIGGER_NODE, campaignId: CAMPAIGN_NODE,
+    });
+
+    const result = goboFreeGiftDiscountFunction(
+      makeInput([airTrigger, nodeTrigger, airGift, nodeGift])
+    );
+    expect(getTargets(result)).toEqual([
+      { cartLine: { id: 'G_AIR', quantity: 2 } },
+      { cartLine: { id: 'G_NODE', quantity: 1 } },
+    ]);
+  });
+
+  it('用 Air V3 赠品行声明 Node campaign → 校验 3 失败，不发折扣', () => {
+    // 攻击：把 Node 的赠品 variant 挂到 Air V3 trigger，伪装成 Node campaign 的赠品
+    const airTrigger = makeLine({ id: 'T_AIR', variantId: TRIGGER_AIR_V3_A });
+    const fakeGift = giftLine({
+      id: 'G_FAKE',
+      variantId: GIFT_NODE,         // Node 的赠品 variant
+      mainVariant: TRIGGER_AIR_V3_A,
+      campaignId: CAMPAIGN_NODE,    // 声明 Node campaign
+    });
+    // Air V3 trigger 不在 Node campaign 的 triggerVariantIds 里 → 校验 4a 失败
+    const result = goboFreeGiftDiscountFunction(
+      makeInput([airTrigger, fakeGift])
+    );
+    expect(result).toEqual({ operations: [] });
+  });
+
+  it('跨 campaign 伪造：声明 Air V3 campaign 但赠品 variant 是 Kick75 赠品 → 校验 3 失败', () => {
+    const airTrigger = makeLine({ id: 'T_AIR', variantId: TRIGGER_AIR_V3_A });
+    const fakeGift = giftLine({
+      id: 'G_FAKE',
+      variantId: GIFT_KICK75,       // Kick75 的赠品 variant
+      mainVariant: TRIGGER_AIR_V3_A,
+      campaignId: CAMPAIGN_AIR_V3, // 声明 Air V3 campaign
+    });
+    // GIFT_KICK75 不在 Air V3 campaign 的 giftVariantIds 里 → 校验 3 失败
+    const result = goboFreeGiftDiscountFunction(
+      makeInput([airTrigger, fakeGift])
+    );
+    expect(result).toEqual({ operations: [] });
   });
 });
