@@ -285,30 +285,30 @@ const CAMPAIGNS = [
   {
     id: "bogo-Air75-HE-TEST-2026",
     triggerVariantIds: new Set([
-      'gid://shopify/ProductVariant/41842485461101', // Low-Profile Magnetic Jade / None / None
-      'gid://shopify/ProductVariant/41842485526637', // Low-Profile Magnetic Jade / None / Canopus Shine-through nSA
-      'gid://shopify/ProductVariant/41842485493869', // Low-Profile Magnetic Jade / Acrylic Frosted / None
-      'gid://shopify/ProductVariant/41842485559405', // Low-Profile Magnetic Jade / Acrylic Frosted / Canopus Shine-through nSA
-      'gid://shopify/ProductVariant/41842486902893', // Low-Profile Magnetic Jade / Acrylic Noir / None
-      'gid://shopify/ProductVariant/41842487033965', // Low-Profile Magnetic Jade / Acrylic Noir / Canopus Shine-through nSA
-      'gid://shopify/ProductVariant/41842486935661', // Low-Profile Magnetic Jade / Beech / None
-      'gid://shopify/ProductVariant/41842487066733', // Low-Profile Magnetic Jade / Beech / Canopus Shine-through nSA
-      'gid://shopify/ProductVariant/41842486968429', // Low-Profile Magnetic Jade / Black Oak / None
-      'gid://shopify/ProductVariant/41842487099501', // Low-Profile Magnetic Jade / Black Oak / Canopus Shine-through nSA
-      'gid://shopify/ProductVariant/41842487001197', // Low-Profile Magnetic Jade / Walnut / None
-      'gid://shopify/ProductVariant/41842487132269', // Low-Profile Magnetic Jade / Walnut / Canopus Shine-through nSA
-      'gid://shopify/ProductVariant/41842485592173', // Low-Profile Magnetic Jade Pro / None / None
-      'gid://shopify/ProductVariant/41842485657709', // Low-Profile Magnetic Jade Pro / None / Canopus Shine-through nSA
-      'gid://shopify/ProductVariant/41842485624941', // Low-Profile Magnetic Jade Pro / Acrylic Frosted / None
-      'gid://shopify/ProductVariant/41842485690477', // Low-Profile Magnetic Jade Pro / Acrylic Frosted / Canopus Shine-through nSA
-      'gid://shopify/ProductVariant/41842487165037', // Low-Profile Magnetic Jade Pro / Acrylic Noir / None
-      'gid://shopify/ProductVariant/41842487296109', // Low-Profile Magnetic Jade Pro / Acrylic Noir / Canopus Shine-through nSA
-      'gid://shopify/ProductVariant/41842487197805', // Low-Profile Magnetic Jade Pro / Beech / None
-      'gid://shopify/ProductVariant/41842487328877', // Low-Profile Magnetic Jade Pro / Beech / Canopus Shine-through nSA
-      'gid://shopify/ProductVariant/41842487230573', // Low-Profile Magnetic Jade Pro / Black Oak / None
-      'gid://shopify/ProductVariant/41842487361645', // Low-Profile Magnetic Jade Pro / Black Oak / Canopus Shine-through nSA
-      'gid://shopify/ProductVariant/41842487263341', // Low-Profile Magnetic Jade Pro / Walnut / None
-      'gid://shopify/ProductVariant/41842487394413', // Low-Profile Magnetic Jade Pro / Walnut / Canopus Shine-through nSA
+        'gid://shopify/ProductVariant/45374100766829', // Low-Profile Magnetic Jade / None / None
+        'gid://shopify/ProductVariant/45374100799597', // Low-Profile Magnetic Jade / None / Canopus Shine-through nSA
+        'gid://shopify/ProductVariant/45374100832365', // Low-Profile Magnetic Jade / Acrylic Frosted / None
+        'gid://shopify/ProductVariant/45374100865133', // Low-Profile Magnetic Jade / Acrylic Frosted / Canopus Shine-through nSA
+        'gid://shopify/ProductVariant/45374100897901', // Low-Profile Magnetic Jade / Acrylic Noir / None
+        'gid://shopify/ProductVariant/45374100930669', // Low-Profile Magnetic Jade / Acrylic Noir / Canopus Shine-through nSA
+        'gid://shopify/ProductVariant/45374100963437', // Low-Profile Magnetic Jade / Beech / None
+        'gid://shopify/ProductVariant/45374100996205', // Low-Profile Magnetic Jade / Beech / Canopus Shine-through nSA
+        'gid://shopify/ProductVariant/45374101028973', // Low-Profile Magnetic Jade / Black Oak / None
+        'gid://shopify/ProductVariant/45374101061741', // Low-Profile Magnetic Jade / Black Oak / Canopus Shine-through nSA
+        'gid://shopify/ProductVariant/45374101094509', // Low-Profile Magnetic Jade / Walnut / None
+        'gid://shopify/ProductVariant/45374101127277', // Low-Profile Magnetic Jade / Walnut / Canopus Shine-through nSA
+        'gid://shopify/ProductVariant/45374101160045', // Low-Profile Magnetic Jade Pro / None / None
+        'gid://shopify/ProductVariant/45374101192813', // Low-Profile Magnetic Jade Pro / None / Canopus Shine-through nSA
+        'gid://shopify/ProductVariant/45374101225581', // Low-Profile Magnetic Jade Pro / Acrylic Frosted / None
+        'gid://shopify/ProductVariant/45374101258349', // Low-Profile Magnetic Jade Pro / Acrylic Frosted / Canopus Shine-through nSA
+        'gid://shopify/ProductVariant/45374101291117', // Low-Profile Magnetic Jade Pro / Acrylic Noir / None
+        'gid://shopify/ProductVariant/45374101323885', // Low-Profile Magnetic Jade Pro / Acrylic Noir / Canopus Shine-through nSA
+        'gid://shopify/ProductVariant/45374101356653', // Low-Profile Magnetic Jade Pro / Beech / None
+        'gid://shopify/ProductVariant/45374101389421', // Low-Profile Magnetic Jade Pro / Beech / Canopus Shine-through nSA
+        'gid://shopify/ProductVariant/45374101422189', // Low-Profile Magnetic Jade Pro / Black Oak / None
+        'gid://shopify/ProductVariant/45374101454957', // Low-Profile Magnetic Jade Pro / Black Oak / Canopus Shine-through nSA
+        'gid://shopify/ProductVariant/45374101487725', // Low-Profile Magnetic Jade Pro / Walnut / None
+        'gid://shopify/ProductVariant/45374101520493', // Low-Profile Magnetic Jade Pro / Walnut / Canopus Shine-through nSA
     ]),
     giftVariantIds: new Set([
       'gid://shopify/ProductVariant/45373293723757', // Default Title
