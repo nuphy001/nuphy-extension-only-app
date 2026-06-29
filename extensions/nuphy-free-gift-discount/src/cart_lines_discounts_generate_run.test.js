@@ -3,36 +3,35 @@ import { goboFreeGiftDiscountFunction } from './cart_lines_discounts_generate_ru
 
 /**
  * 测试常量（与 cart_lines_discounts_generate_run.js 内 CAMPAIGNS 同步）
+ *
+ * 当前线上共两条活动：
+ *   1) 键帽 bogo-Summer-Keycaps-2026  —— Kick75 矮轴(Low) 在此触发
+ *   2) 手托 bogo-Wrist-Rest-2026      —— Kick75 高轴(High) 在此触发
+ * 业务规则：全站商品按规则归属——命中键帽规则送键帽，命中手托规则送手托。
  */
 
-// ─── Air V3 campaign ─────────────────────────────────────────────────────────
-const CAMPAIGN_AIR_V3 = 'bogo-air-v3-wrist-rest-2026';
+// ─── 键帽 campaign（Summer Keycaps） ──────────────────────────────────────────
+const CAMPAIGN_KEYCAPS = 'bogo-Summer-Keycaps-2026';
 // Air75 V3 — Nova White / Blush nano / ANSI
-const TRIGGER_AIR_V3_A = 'gid://shopify/ProductVariant/42579051315309';
-// Air65 V3 — Nova White / Blush nano / ANSI
-const TRIGGER_AIR_V3_B = 'gid://shopify/ProductVariant/43879425736813';
-// Wrist Rest（Air V3 赠品）
-const GIFT_AIR_V3 = 'gid://shopify/ProductVariant/45330731794541';
+const TRIGGER_KEYCAPS_AIR = 'gid://shopify/ProductVariant/42579051315309';
+// Kick75 矮轴 — Low / NuPhyIO / Red
+const TRIGGER_KEYCAPS_KICK_LOW = 'gid://shopify/ProductVariant/43805710352493';
+// 键帽赠品
+const GIFT_KEYCAPS = 'gid://shopify/ProductVariant/45378325839981';
 
-// ─── Node campaign ────────────────────────────────────────────────────────────
-const CAMPAIGN_NODE = 'bogo-node-wrist-rest-2026';
-// Node 75 Low-profile / ANSI / Lunar White / Red nano
-const TRIGGER_NODE = 'gid://shopify/ProductVariant/43791048835181';
-// Wrist Rest（Node 赠品）
-const GIFT_NODE = 'gid://shopify/ProductVariant/45194508664941';
+// ─── 手托 campaign（Wrist Rest） ──────────────────────────────────────────────
+const CAMPAIGN_WRISTREST = 'bogo-Wrist-Rest-2026';
+// Halo IO 75 — Ionic White / Red Max
+const TRIGGER_WRISTREST_HALO = 'gid://shopify/ProductVariant/43464077508717';
+// Kick75 高轴 — High / NuPhyIO / Red
+const TRIGGER_WRISTREST_KICK_HIGH = 'gid://shopify/ProductVariant/43805710614637';
+// 手托赠品
+const GIFT_WRISTREST = 'gid://shopify/ProductVariant/45378334130285';
 
-// ─── Kick75 campaign ──────────────────────────────────────────────────────────
-const CAMPAIGN_KICK75 = 'bogo-kick75-3d-accessory-2026';
-// Kick75 Low / NuPhyIO / Red
-const TRIGGER_KICK75 = 'gid://shopify/ProductVariant/43805710352493';
-// 3D Printed Accessory（Kick75 赠品）
-const GIFT_KICK75 = 'gid://shopify/ProductVariant/45329023795309';
-
-// ─── 兼容别名（给下方通用测试用） ────────────────────────────────────────────
-const CAMPAIGN_ID = CAMPAIGN_AIR_V3;
-const TRIGGER_A = TRIGGER_AIR_V3_A;
-const TRIGGER_B = TRIGGER_AIR_V3_B;
-const GIFT_VARIANT = GIFT_AIR_V3;
+// ─── 兼容别名（给通用/基础测试用，默认走键帽活动） ──────────────────────────
+const CAMPAIGN_ID = CAMPAIGN_KEYCAPS;
+const TRIGGER_A = TRIGGER_KEYCAPS_AIR;
+const GIFT_VARIANT = GIFT_KEYCAPS;
 const RANDOM_VARIANT = 'gid://shopify/ProductVariant/99999999999999';
 
 /**
@@ -61,20 +60,20 @@ function makeInput(lines) {
   return { cart: { lines } };
 }
 
-/** 合法的赠品行（4 层校验全部通过） */
-function legalGiftLine(id = 'G1') {
-  return makeLine({
-    id,
-    variantId: GIFT_VARIANT,
-    role: 'gift',
-    promoId: CAMPAIGN_ID,
-    mainVariant: TRIGGER_A,
-  });
-}
-
-/** 合法的触发主品行 */
+/** 合法触发主品行（默认键帽活动 Air75 V3） */
 function triggerLine(id = 'T1', variantId = TRIGGER_A, quantity = 1) {
   return makeLine({ id, variantId, quantity });
+}
+
+/** 合法赠品行（4 层校验全部通过；默认键帽活动） */
+function giftLine({
+  id = 'G1',
+  variantId = GIFT_VARIANT,
+  promoId = CAMPAIGN_ID,
+  mainVariant = TRIGGER_A,
+  quantity = 1,
+} = {}) {
+  return makeLine({ id, variantId, role: 'gift', promoId, mainVariant, quantity });
 }
 
 function getTargets(result) {
@@ -91,313 +90,180 @@ describe('goboFreeGiftDiscountFunction — 基础场景', () => {
     expect(result).toEqual({ operations: [] });
   });
 
-  it('行有非 gift role → 不发折扣', () => {
-    const line = makeLine({ id: 'L1', role: 'trigger' });
-    expect(goboFreeGiftDiscountFunction(makeInput([line]))).toEqual({ operations: [] });
-  });
-});
-
-describe('goboFreeGiftDiscountFunction — 合法 BOGO 流程', () => {
-  it('主品 + 合法赠品 → gift 行打折 quantity=1', () => {
-    const result = goboFreeGiftDiscountFunction(
-      makeInput([triggerLine('T1'), legalGiftLine('G1')])
-    );
-    expect(result.operations).toHaveLength(1);
-    const op = result.operations[0].productDiscountsAdd;
-    expect(op.selectionStrategy).toBe('FIRST');
-    expect(op.candidates[0].message).toBe('Free Gift');
-    expect(op.candidates[0].value).toEqual({ percentage: { value: 100 } });
-    expect(op.candidates[0].targets).toEqual([
-      { cartLine: { id: 'G1', quantity: 1 } },
-    ]);
-  });
-
-  it('主品 B + 合法赠品（声明 main=B） → 仍打折', () => {
-    const gift = makeLine({
-      id: 'G1', variantId: GIFT_VARIANT, role: 'gift',
-      promoId: CAMPAIGN_ID, mainVariant: TRIGGER_B,
-    });
-    const result = goboFreeGiftDiscountFunction(
-      makeInput([triggerLine('T1', TRIGGER_B), gift])
-    );
-    expect(getTargets(result)).toEqual([{ cartLine: { id: 'G1', quantity: 1 } }]);
-  });
-
-  it('1 主品 + 赠品 quantity=5 → 仅免 1 件（按主品数量封顶，防放大）', () => {
-    const gift = { ...legalGiftLine('G1'), quantity: 5 };
-    const result = goboFreeGiftDiscountFunction(
-      makeInput([triggerLine('T1'), gift]) // 主品 qty 默认 1 → 配额 1
-    );
-    expect(getTargets(result)).toEqual([
-      { cartLine: { id: 'G1', quantity: 1 } }, // 仅 1 件免单，其余原价
-    ]);
-  });
-
-  it('买 N 送 N：主品 qty3 + 赠品 qty3 → 免 3 件', () => {
-    const gift = { ...legalGiftLine('G1'), quantity: 3 };
-    const result = goboFreeGiftDiscountFunction(
-      makeInput([triggerLine('T1', TRIGGER_A, 3), gift])
-    );
-    expect(getTargets(result)).toEqual([{ cartLine: { id: 'G1', quantity: 3 } }]);
-  });
-
-  it('封顶：主品 qty2 + 赠品 qty5 → 只免 2 件（其余原价）', () => {
-    const gift = { ...legalGiftLine('G1'), quantity: 5 };
-    const result = goboFreeGiftDiscountFunction(
-      makeInput([triggerLine('T1', TRIGGER_A, 2), gift])
-    );
-    expect(getTargets(result)).toEqual([{ cartLine: { id: 'G1', quantity: 2 } }]);
-  });
-
-  it('多触发行数量求和：2×A + 1×B + 赠品 qty3 → 免 3 件', () => {
-    const gift = { ...legalGiftLine('G1'), quantity: 3 };
-    const result = goboFreeGiftDiscountFunction(
-      makeInput([
-        triggerLine('T1', TRIGGER_A, 2),
-        triggerLine('T2', TRIGGER_B, 1),
-        gift,
-      ])
-    );
-    expect(getTargets(result)).toEqual([{ cartLine: { id: 'G1', quantity: 3 } }]);
-  });
-});
-
-describe('goboFreeGiftDiscountFunction — 攻击场景（必须 FAIL，即不发折扣）', () => {
-  it('risk 1：任意 variant 伪装成 gift（白名单外）→ 不发折扣', () => {
-    const fake = makeLine({
-      id: 'F1',
-      variantId: TRIGGER_A, // 用主品 variant 当 gift
-      role: 'gift',
+  it('赠品行 _promo_role 非 gift（其它值）→ 不发折扣', () => {
+    const line = makeLine({
+      id: 'X',
+      variantId: GIFT_VARIANT,
+      role: 'main',
       promoId: CAMPAIGN_ID,
       mainVariant: TRIGGER_A,
     });
-    expect(goboFreeGiftDiscountFunction(makeInput([fake]))).toEqual({ operations: [] });
+    const result = goboFreeGiftDiscountFunction(makeInput([triggerLine(), line]));
+    expect(result).toEqual({ operations: [] });
   });
+});
 
-  it('risk 1 (b)：完全无关 variant 伪装 gift → 不发折扣', () => {
-    const fake = makeLine({
-      id: 'F1',
-      variantId: RANDOM_VARIANT,
+describe('goboFreeGiftDiscountFunction — 服务端 4 层校验', () => {
+  it('校验2：_promo_id 缺失 → 不发折扣', () => {
+    const line = makeLine({
+      id: 'G',
+      variantId: GIFT_VARIANT,
       role: 'gift',
-      promoId: CAMPAIGN_ID,
+      promoId: null,
       mainVariant: TRIGGER_A,
     });
-    expect(goboFreeGiftDiscountFunction(makeInput([fake]))).toEqual({ operations: [] });
+    expect(getTargets(goboFreeGiftDiscountFunction(makeInput([triggerLine(), line])))).toEqual([]);
   });
 
-  it('risk 2：只有赠品行、无主品在 cart → 不发折扣', () => {
-    const gift = legalGiftLine('G1');
-    expect(goboFreeGiftDiscountFunction(makeInput([gift]))).toEqual({ operations: [] });
+  it('校验2：_promo_id 指向不存在的活动 → 不发折扣', () => {
+    const line = giftLine({ promoId: 'bogo-does-not-exist' });
+    expect(getTargets(goboFreeGiftDiscountFunction(makeInput([triggerLine(), line])))).toEqual([]);
   });
 
-  it('risk 2 (b)：声明的 mainVariant 不在 cart 内 → 不发折扣', () => {
-    const gift = { ...legalGiftLine('G1') }; // 声明 main=TRIGGER_A
-    const otherLine = triggerLine('T1', TRIGGER_B); // 但 cart 里是 TRIGGER_B
-    // gift.mainVariant=TRIGGER_A 但 cart 非赠品行仅有 TRIGGER_B
-    expect(goboFreeGiftDiscountFunction(makeInput([otherLine, gift]))).toEqual({ operations: [] });
-    // 注意：本用例里 TRIGGER_B 本身也是合法 trigger，但 gift 声明的是 TRIGGER_A，校验 4b 应失败
+  it('校验3：merchandise 不是该活动赠品 variant → 不发折扣', () => {
+    const line = giftLine({ variantId: RANDOM_VARIANT });
+    expect(getTargets(goboFreeGiftDiscountFunction(makeInput([triggerLine(), line])))).toEqual([]);
   });
 
-  it('攻击：篡改 _promo_main_variant 指向非合法 trigger → 不发折扣', () => {
-    const gift = makeLine({
-      id: 'G1', variantId: GIFT_VARIANT, role: 'gift',
-      promoId: CAMPAIGN_ID, mainVariant: RANDOM_VARIANT,
-    });
-    expect(goboFreeGiftDiscountFunction(makeInput([gift]))).toEqual({ operations: [] });
+  it('校验3：拿手托赠品冒充键帽活动赠品 → 不发折扣', () => {
+    const line = giftLine({ variantId: GIFT_WRISTREST }); // 键帽活动里塞手托赠品
+    expect(getTargets(goboFreeGiftDiscountFunction(makeInput([triggerLine(), line])))).toEqual([]);
   });
 
-  it('攻击：未声明 _promo_id → 不发折扣', () => {
-    const gift = makeLine({
-      id: 'G1', variantId: GIFT_VARIANT, role: 'gift',
-      promoId: null, mainVariant: TRIGGER_A,
-    });
-    expect(goboFreeGiftDiscountFunction(makeInput([triggerLine(), gift]))).toEqual({ operations: [] });
+  it('校验4a：_promo_main_variant 不是该活动 trigger → 不发折扣', () => {
+    const line = giftLine({ mainVariant: RANDOM_VARIANT });
+    const trigger = makeLine({ id: 'T', variantId: RANDOM_VARIANT });
+    expect(getTargets(goboFreeGiftDiscountFunction(makeInput([trigger, line])))).toEqual([]);
   });
 
-  it('攻击：声明不存在的 _promo_id → 不发折扣', () => {
-    const gift = makeLine({
-      id: 'G1', variantId: GIFT_VARIANT, role: 'gift',
-      promoId: 'bogo-fake-campaign', mainVariant: TRIGGER_A,
-    });
-    expect(goboFreeGiftDiscountFunction(makeInput([triggerLine(), gift]))).toEqual({ operations: [] });
-  });
-
-  it('攻击：未声明 _promo_main_variant → 不发折扣', () => {
-    const gift = makeLine({
-      id: 'G1', variantId: GIFT_VARIANT, role: 'gift',
-      promoId: CAMPAIGN_ID, mainVariant: null,
-    });
-    expect(goboFreeGiftDiscountFunction(makeInput([triggerLine(), gift]))).toEqual({ operations: [] });
-  });
-
-  it('赠品行 quantity=0 → 不发折扣（allowed<1 截断）', () => {
-    const gift = { ...legalGiftLine('G1'), quantity: 0 };
-    expect(
-      goboFreeGiftDiscountFunction(makeInput([triggerLine('T1'), gift]))
-    ).toEqual({ operations: [] });
+  it('校验4b：声明的主品是合法 trigger，但 cart 内无该主品行 → 不发折扣', () => {
+    const line = giftLine(); // mainVariant=Air75 V3，但购物车没有这一行
+    expect(getTargets(goboFreeGiftDiscountFunction(makeInput([line])))).toEqual([]);
   });
 });
 
-describe('goboFreeGiftDiscountFunction — 多 line 组合', () => {
-  it('多个赠品行共享 campaign 配额：主品 qty2 → 两行各免 1', () => {
-    const gift1 = legalGiftLine('G1');
-    const gift2 = { ...legalGiftLine('G2') };
-    const result = goboFreeGiftDiscountFunction(
-      makeInput([triggerLine('T1', TRIGGER_A, 2), gift1, gift2])
-    );
-    expect(getTargets(result)).toEqual([
-      { cartLine: { id: 'G1', quantity: 1 } },
-      { cartLine: { id: 'G2', quantity: 1 } },
-    ]);
+describe('goboFreeGiftDiscountFunction — 键帽活动正向', () => {
+  it('买 Air75 V3 + 合法键帽赠品行 → 送 1 键帽', () => {
+    const result = goboFreeGiftDiscountFunction(makeInput([triggerLine('T'), giftLine({ id: 'G' })]));
+    expect(getTargets(result)).toEqual([{ cartLine: { id: 'G', quantity: 1 } }]);
   });
 
-  it('配额封顶跨行：主品 qty1 + 两个赠品行 → 只免第一行 1 件', () => {
-    const gift1 = legalGiftLine('G1');
-    const gift2 = { ...legalGiftLine('G2') };
-    const result = goboFreeGiftDiscountFunction(
-      makeInput([triggerLine('T1', TRIGGER_A, 1), gift1, gift2])
-    );
-    expect(getTargets(result)).toEqual([
-      { cartLine: { id: 'G1', quantity: 1 } }, // 配额 1 被 G1 用完，G2 不免单
-    ]);
+  it('买 Kick75 矮轴 + 键帽赠品 → 送键帽（锁死：矮轴归键帽）', () => {
+    const trigger = makeLine({ id: 'T', variantId: TRIGGER_KEYCAPS_KICK_LOW });
+    const gift = giftLine({ id: 'G', mainVariant: TRIGGER_KEYCAPS_KICK_LOW });
+    const result = goboFreeGiftDiscountFunction(makeInput([trigger, gift]));
+    expect(getTargets(result)).toEqual([{ cartLine: { id: 'G', quantity: 1 } }]);
   });
+});
 
-  it('合法赠品 + 非法赠品混合 → 只对合法的打折', () => {
-    const legal = legalGiftLine('G1');
-    const fake = makeLine({
-      id: 'F1', variantId: RANDOM_VARIANT, role: 'gift',
-      promoId: CAMPAIGN_ID, mainVariant: TRIGGER_A,
+describe('goboFreeGiftDiscountFunction — 手托活动正向', () => {
+  it('买 Halo IO + 合法手托赠品行 → 送 1 手托', () => {
+    const trigger = makeLine({ id: 'T', variantId: TRIGGER_WRISTREST_HALO });
+    const gift = giftLine({
+      id: 'G',
+      variantId: GIFT_WRISTREST,
+      promoId: CAMPAIGN_WRISTREST,
+      mainVariant: TRIGGER_WRISTREST_HALO,
     });
-    const result = goboFreeGiftDiscountFunction(
-      makeInput([triggerLine('T1'), legal, fake])
-    );
-    expect(getTargets(result)).toEqual([
-      { cartLine: { id: 'G1', quantity: 1 } },
+    const result = goboFreeGiftDiscountFunction(makeInput([trigger, gift]));
+    expect(getTargets(result)).toEqual([{ cartLine: { id: 'G', quantity: 1 } }]);
+  });
+
+  it('买 Kick75 高轴 + 手托赠品 → 送手托（锁死本次改动：高轴归手托）', () => {
+    const trigger = makeLine({ id: 'T', variantId: TRIGGER_WRISTREST_KICK_HIGH });
+    const gift = giftLine({
+      id: 'G',
+      variantId: GIFT_WRISTREST,
+      promoId: CAMPAIGN_WRISTREST,
+      mainVariant: TRIGGER_WRISTREST_KICK_HIGH,
+    });
+    const result = goboFreeGiftDiscountFunction(makeInput([trigger, gift]));
+    expect(getTargets(result)).toEqual([{ cartLine: { id: 'G', quantity: 1 } }]);
+  });
+});
+
+describe('goboFreeGiftDiscountFunction — Kick 高轴/矮轴 串活动防滥用', () => {
+  it('Kick75 高轴 想用键帽活动骗键帽 → 不发（高轴不是键帽 trigger，校验4a 拦截）', () => {
+    const trigger = makeLine({ id: 'T', variantId: TRIGGER_WRISTREST_KICK_HIGH });
+    const gift = giftLine({ id: 'G', mainVariant: TRIGGER_WRISTREST_KICK_HIGH }); // 键帽活动 + 高轴主品
+    expect(getTargets(goboFreeGiftDiscountFunction(makeInput([trigger, gift])))).toEqual([]);
+  });
+
+  it('Kick75 矮轴 想用手托活动骗手托 → 不发（矮轴不是手托 trigger，校验4a 拦截）', () => {
+    const trigger = makeLine({ id: 'T', variantId: TRIGGER_KEYCAPS_KICK_LOW });
+    const gift = giftLine({
+      id: 'G',
+      variantId: GIFT_WRISTREST,
+      promoId: CAMPAIGN_WRISTREST,
+      mainVariant: TRIGGER_KEYCAPS_KICK_LOW,
+    });
+    expect(getTargets(goboFreeGiftDiscountFunction(makeInput([trigger, gift])))).toEqual([]);
+  });
+});
+
+describe('goboFreeGiftDiscountFunction — 数量截断（1:1 封顶）', () => {
+  it('买 2 个主品 + 赠品行 qty=1 → 免 1', () => {
+    const trigger = triggerLine('T', TRIGGER_A, 2);
+    const gift = giftLine({ id: 'G', quantity: 1 });
+    expect(getTargets(goboFreeGiftDiscountFunction(makeInput([trigger, gift])))).toEqual([
+      { cartLine: { id: 'G', quantity: 1 } },
     ]);
   });
 
-  it('赠品 variant 出现在非赠品行（无 _promo_role）+ 真实合法 gift → 只对合法 gift 打折', () => {
-    // 攻击思路：把赠品 variant 加进购物车不打 _promo_role → 这样它就在 nonGiftVariantIds 里
-    // 但因为 GIFT_VARIANT 不在 triggerVariantIds 白名单里，校验 4a 仍然挡得住
-    const giftAsNonGift = makeLine({ id: 'X1', variantId: GIFT_VARIANT });
-    const legal = legalGiftLine('G1');
-    const result = goboFreeGiftDiscountFunction(
-      makeInput([triggerLine('T1'), giftAsNonGift, legal])
-    );
-    expect(getTargets(result)).toEqual([
-      { cartLine: { id: 'G1', quantity: 1 } },
+  it('买 2 个主品 + 赠品行 qty=2 → 免 2', () => {
+    const trigger = triggerLine('T', TRIGGER_A, 2);
+    const gift = giftLine({ id: 'G', quantity: 2 });
+    expect(getTargets(goboFreeGiftDiscountFunction(makeInput([trigger, gift])))).toEqual([
+      { cartLine: { id: 'G', quantity: 2 } },
+    ]);
+  });
+
+  it('买 1 个主品 + 赠品行被改大 qty=3 → 只免 1（防数量放大）', () => {
+    const trigger = triggerLine('T', TRIGGER_A, 1);
+    const gift = giftLine({ id: 'G', quantity: 3 });
+    expect(getTargets(goboFreeGiftDiscountFunction(makeInput([trigger, gift])))).toEqual([
+      { cartLine: { id: 'G', quantity: 1 } },
     ]);
   });
 });
 
-describe('goboFreeGiftDiscountFunction — 跨 campaign 混买场景', () => {
-  /**
-   * 辅助：构造指定 campaign 的合法赠品行
-   */
-  function giftLine({ id, variantId, mainVariant, campaignId, qty = 1 }) {
-    return {
-      ...makeLine({ id, variantId, role: 'gift', promoId: campaignId, mainVariant }),
-      quantity: qty,
-    };
-  }
-
-  it('Air V3 + Node 各买 1 → 各送 1 个 Wrist Rest（两个 campaign 独立结算）', () => {
-    const airTrigger = makeLine({ id: 'T_AIR', variantId: TRIGGER_AIR_V3_A });
-    const nodeTrigger = makeLine({ id: 'T_NODE', variantId: TRIGGER_NODE });
-    const airGift = giftLine({
-      id: 'G_AIR', variantId: GIFT_AIR_V3,
-      mainVariant: TRIGGER_AIR_V3_A, campaignId: CAMPAIGN_AIR_V3,
+describe('goboFreeGiftDiscountFunction — 跨活动混买（配额独立）', () => {
+  it('Air(键帽) + Kick高轴(手托) 各带赠品 → 各送各的', () => {
+    const airTrigger = triggerLine('T_AIR', TRIGGER_KEYCAPS_AIR, 1);
+    const kickHighTrigger = makeLine({ id: 'T_KICK', variantId: TRIGGER_WRISTREST_KICK_HIGH });
+    const keycapGift = giftLine({ id: 'G_KC' });
+    const wristGift = giftLine({
+      id: 'G_WR',
+      variantId: GIFT_WRISTREST,
+      promoId: CAMPAIGN_WRISTREST,
+      mainVariant: TRIGGER_WRISTREST_KICK_HIGH,
     });
-    const nodeGift = giftLine({
-      id: 'G_NODE', variantId: GIFT_NODE,
-      mainVariant: TRIGGER_NODE, campaignId: CAMPAIGN_NODE,
-    });
-
     const result = goboFreeGiftDiscountFunction(
-      makeInput([airTrigger, nodeTrigger, airGift, nodeGift])
+      makeInput([airTrigger, kickHighTrigger, keycapGift, wristGift]),
     );
     expect(getTargets(result)).toEqual([
-      { cartLine: { id: 'G_AIR', quantity: 1 } },
-      { cartLine: { id: 'G_NODE', quantity: 1 } },
+      { cartLine: { id: 'G_KC', quantity: 1 } },
+      { cartLine: { id: 'G_WR', quantity: 1 } },
     ]);
   });
 
-  it('Air V3 + Node + Kick75 各买 1 → 送 Air 手托 + Node 手托 + Kick75 3D 配件', () => {
-    const airTrigger = makeLine({ id: 'T_AIR', variantId: TRIGGER_AIR_V3_A });
-    const nodeTrigger = makeLine({ id: 'T_NODE', variantId: TRIGGER_NODE });
-    const kickTrigger = makeLine({ id: 'T_KICK', variantId: TRIGGER_KICK75 });
-    const airGift = giftLine({
-      id: 'G_AIR', variantId: GIFT_AIR_V3,
-      mainVariant: TRIGGER_AIR_V3_A, campaignId: CAMPAIGN_AIR_V3,
+  it('键帽买 2 → 送 2；手托买 1 → 送 1（两活动配额互不干扰）', () => {
+    const airTrigger = triggerLine('T_AIR', TRIGGER_KEYCAPS_AIR, 2);
+    const haloTrigger = triggerLine('T_HALO', TRIGGER_WRISTREST_HALO, 1);
+    const keycapGift = giftLine({ id: 'G_KC', quantity: 2 });
+    const wristGift = giftLine({
+      id: 'G_WR',
+      variantId: GIFT_WRISTREST,
+      promoId: CAMPAIGN_WRISTREST,
+      mainVariant: TRIGGER_WRISTREST_HALO,
+      quantity: 1,
     });
-    const nodeGift = giftLine({
-      id: 'G_NODE', variantId: GIFT_NODE,
-      mainVariant: TRIGGER_NODE, campaignId: CAMPAIGN_NODE,
-    });
-    const kickGift = giftLine({
-      id: 'G_KICK', variantId: GIFT_KICK75,
-      mainVariant: TRIGGER_KICK75, campaignId: CAMPAIGN_KICK75,
-    });
-
     const result = goboFreeGiftDiscountFunction(
-      makeInput([airTrigger, nodeTrigger, kickTrigger, airGift, nodeGift, kickGift])
+      makeInput([airTrigger, haloTrigger, keycapGift, wristGift]),
     );
     expect(getTargets(result)).toEqual([
-      { cartLine: { id: 'G_AIR', quantity: 1 } },
-      { cartLine: { id: 'G_NODE', quantity: 1 } },
-      { cartLine: { id: 'G_KICK', quantity: 1 } },
+      { cartLine: { id: 'G_KC', quantity: 2 } },
+      { cartLine: { id: 'G_WR', quantity: 1 } },
     ]);
-  });
-
-  it('Air V3 买 2 → 送 2 个手托；Node 买 1 → 送 1 个手托（各 campaign 配额独立）', () => {
-    const airTrigger = { ...makeLine({ id: 'T_AIR', variantId: TRIGGER_AIR_V3_A }), quantity: 2 };
-    const nodeTrigger = makeLine({ id: 'T_NODE', variantId: TRIGGER_NODE });
-    const airGift = giftLine({
-      id: 'G_AIR', variantId: GIFT_AIR_V3,
-      mainVariant: TRIGGER_AIR_V3_A, campaignId: CAMPAIGN_AIR_V3, qty: 2,
-    });
-    const nodeGift = giftLine({
-      id: 'G_NODE', variantId: GIFT_NODE,
-      mainVariant: TRIGGER_NODE, campaignId: CAMPAIGN_NODE,
-    });
-
-    const result = goboFreeGiftDiscountFunction(
-      makeInput([airTrigger, nodeTrigger, airGift, nodeGift])
-    );
-    expect(getTargets(result)).toEqual([
-      { cartLine: { id: 'G_AIR', quantity: 2 } },
-      { cartLine: { id: 'G_NODE', quantity: 1 } },
-    ]);
-  });
-
-  it('用 Air V3 赠品行声明 Node campaign → 校验 3 失败，不发折扣', () => {
-    // 攻击：把 Node 的赠品 variant 挂到 Air V3 trigger，伪装成 Node campaign 的赠品
-    const airTrigger = makeLine({ id: 'T_AIR', variantId: TRIGGER_AIR_V3_A });
-    const fakeGift = giftLine({
-      id: 'G_FAKE',
-      variantId: GIFT_NODE,         // Node 的赠品 variant
-      mainVariant: TRIGGER_AIR_V3_A,
-      campaignId: CAMPAIGN_NODE,    // 声明 Node campaign
-    });
-    // Air V3 trigger 不在 Node campaign 的 triggerVariantIds 里 → 校验 4a 失败
-    const result = goboFreeGiftDiscountFunction(
-      makeInput([airTrigger, fakeGift])
-    );
-    expect(result).toEqual({ operations: [] });
-  });
-
-  it('跨 campaign 伪造：声明 Air V3 campaign 但赠品 variant 是 Kick75 赠品 → 校验 3 失败', () => {
-    const airTrigger = makeLine({ id: 'T_AIR', variantId: TRIGGER_AIR_V3_A });
-    const fakeGift = giftLine({
-      id: 'G_FAKE',
-      variantId: GIFT_KICK75,       // Kick75 的赠品 variant
-      mainVariant: TRIGGER_AIR_V3_A,
-      campaignId: CAMPAIGN_AIR_V3, // 声明 Air V3 campaign
-    });
-    // GIFT_KICK75 不在 Air V3 campaign 的 giftVariantIds 里 → 校验 3 失败
-    const result = goboFreeGiftDiscountFunction(
-      makeInput([airTrigger, fakeGift])
-    );
-    expect(result).toEqual({ operations: [] });
   });
 });
