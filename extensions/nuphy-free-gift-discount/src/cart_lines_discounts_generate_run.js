@@ -181,14 +181,7 @@ const CAMPAIGNS = [
         'gid://shopify/ProductVariant/43805710516333', // Low / QMK & VIA / Brown
         'gid://shopify/ProductVariant/43805710549101', // Low / QMK & VIA / Silver
         'gid://shopify/ProductVariant/43805710581869', // Low / QMK & VIA / Blush
-        'gid://shopify/ProductVariant/43805710614637', // High / NuPhyIO / Red
-        'gid://shopify/ProductVariant/43805710647405', // High / NuPhyIO / Brown
-        'gid://shopify/ProductVariant/43805710680173', // High / NuPhyIO / Silver
-        'gid://shopify/ProductVariant/43805710712941', // High / NuPhyIO / Blush
-        'gid://shopify/ProductVariant/43805710745709', // High / QMK & VIA / Red
-        'gid://shopify/ProductVariant/43805710778477', // High / QMK & VIA / Brown
-        'gid://shopify/ProductVariant/43805710811245', // High / QMK & VIA / Silver
-        'gid://shopify/ProductVariant/43805710844013', // High / QMK & VIA / Blush
+
         // NuPhy Air75 V2
         'gid://shopify/ProductVariant/40677451399277', // Lunar Gray / Blue 2.0
         'gid://shopify/ProductVariant/40635217674349', // Lunar Gray / Aloe (37gf)
@@ -485,6 +478,15 @@ const CAMPAIGNS = [
         'gid://shopify/ProductVariant/45135132754029', // 100-JIS-Japanese / Ink Gray / Red Max
         'gid://shopify/ProductVariant/45135132786797', // 100-JIS-Japanese / Ink Gray / Brown Max
         'gid://shopify/ProductVariant/45135132819565', // 100-JIS-Japanese / Ink Gray / Blush Max
+        //Kick75 
+        'gid://shopify/ProductVariant/43805710614637', // High / NuPhyIO / Red
+        'gid://shopify/ProductVariant/43805710647405', // High / NuPhyIO / Brown
+        'gid://shopify/ProductVariant/43805710680173', // High / NuPhyIO / Silver
+        'gid://shopify/ProductVariant/43805710712941', // High / NuPhyIO / Blush
+        'gid://shopify/ProductVariant/43805710745709', // High / QMK & VIA / Red
+        'gid://shopify/ProductVariant/43805710778477', // High / QMK & VIA / Brown
+        'gid://shopify/ProductVariant/43805710811245', // High / QMK & VIA / Silver
+        'gid://shopify/ProductVariant/43805710844013', // High / QMK & VIA / Blush
       ]
     ),
     giftVariantIds: new Set([
