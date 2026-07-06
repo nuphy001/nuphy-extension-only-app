@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { goboFreeGiftDiscountFunction } from './cart_lines_discounts_generate_run';
+import { goboFreeGiftDiscountFunction } from './cart_lines_discounts_generate_run.production';
 
 /**
  * 测试常量（与 cart_lines_discounts_generate_run.js 内 CAMPAIGNS 同步）

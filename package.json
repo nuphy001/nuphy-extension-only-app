@@ -4,13 +4,20 @@
   "license": "UNLICENSED",
   "scripts": {
     "shopify": "shopify",
-    "build": "shopify app build",
-    "dev": "shopify app dev",
+    "build": "node scripts/run-shopify-environment.mjs development app build",
+    "dev": "node scripts/run-shopify-environment.mjs development app dev",
     "info": "shopify app info",
     "generate": "shopify app generate",
-    "deploy": "shopify app deploy"
+    "deploy": "node scripts/run-shopify-environment.mjs development app deploy",
+    "dev:test": "node scripts/run-shopify-environment.mjs development app dev",
+    "info:production": "shopify app info --config production",
+    "deploy:test": "node scripts/run-shopify-environment.mjs development app deploy",
+    "deploy:production": "node scripts/run-shopify-environment.mjs production app deploy --config production",
+    "validate:test": "shopify app config validate --json",
+    "validate:production": "shopify app config validate --config production --json",
+    "build:test": "node scripts/run-shopify-environment.mjs development app build",
+    "build:production": "node scripts/run-shopify-environment.mjs production app build --config production"
   },
-  "dependencies": {},
   "trustedDependencies": [
     "@shopify/plugin-cloudflare"
   ],

@@ -1,0 +1,18 @@
+# Production configuration. Always select it explicitly with --config production.
+
+client_id = "1dfa5ac4c1e95115a158b547c4228540"
+name = "nuphy-extension-only-app"
+application_url = "https://shopify.dev/apps/default-app-home"
+embedded = false
+
+[build]
+automatically_update_urls_on_dev = false
+
+[webhooks]
+api_version = "2026-01"
+
+[access_scopes]
+scopes = ""
+
+[auth]
+redirect_urls = [ "https://shopify.dev/apps/default-app-home/api/auth" ]

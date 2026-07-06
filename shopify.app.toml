@@ -1,12 +1,13 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = "1dfa5ac4c1e95115a158b547c4228540"
-name = "nuphy-extension-only-app"
+client_id = "ea8902f04f9c9f1c5f6fd7ed25500b71"
+name = "nuphy-functions-test"
 application_url = "https://shopify.dev/apps/default-app-home"
 # 如果是 true 那么就会无法配置那个 chekcout 配置，跳转走
 embedded = false
 [build]
 automatically_update_urls_on_dev = true
+dev_store_url = "q1j8s1-yq.myshopify.com"
 
 [webhooks]
 api_version = "2026-01"
