@@ -16,10 +16,12 @@ This is a template for building an [extension-only Shopify app](https://shopify.
 ### 常用命令（仓库根）
 
 ```bash
-npm install                                          # 装全部 workspace 依赖
-npx shopify app build                                # 构建所有 extension 的 wasm
-npx shopify app deploy                               # 部署所有 extension 到当前 App
-npm --workspace <handle> run test -- --run           # 跑指定 extension 的 vitest 用例
+npm install                                             # 装全部 workspace 依赖
+pnpm build     # 测试店铺                                # 构建所有 extension 的 wasm
+pnpm deploy    # 测试店铺
+pnpm build:production            # 生产店铺              # 部署所有 extension 到当前 App
+pnpm deploy:production           # 生产店铺              # 部署所有 extension 到当前 App
+npm --workspace <handle> run test -- --run              # 跑指定 extension 的 vitest 用例
 ```
 
 ---
