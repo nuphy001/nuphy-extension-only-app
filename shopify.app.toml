@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "ea8902f04f9c9f1c5f6fd7ed25500b71"
-name = "nuphy-functions-test"
+name = "nuphyX-extension-app"
 application_url = "https://shopify.dev/apps/default-app-home"
 # 如果是 true 那么就会无法配置那个 chekcout 配置，跳转走
 embedded = false
