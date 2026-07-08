@@ -276,75 +276,10 @@ const CAMPAIGNS = [
     ]),
   },
 
-  //手托  赠品🎁 Free Wrist Rest (Random Color) ───────────────
+  //手托  赠品🎁 New Free Halo V2 Exclusive Wrist Rest (Random Color) ───────────────
   {
-    id: "bogo-Wrist-Rest-2026",
+    id: "bogo-QMK-2026-0708",
     triggerVariantIds: new Set([
-        // NuPhy Halo IO Series
-        'gid://shopify/ProductVariant/43464077508717', // 75 / Ionic White / Red Max
-        'gid://shopify/ProductVariant/43464077541485', // 75 / Ionic White / Brown Max
-        'gid://shopify/ProductVariant/43464077574253', // 75 / Ionic White / Blush Max
-        'gid://shopify/ProductVariant/43463941455981', // 75 / Obsidian Black / Red Max
-        'gid://shopify/ProductVariant/43463941488749', // 75 / Obsidian Black / Brown Max
-        'gid://shopify/ProductVariant/43463941521517', // 75 / Obsidian Black / Blush Max
-        'gid://shopify/ProductVariant/43464077607021', // 75 / Sakura Fizz / Red Max
-        'gid://shopify/ProductVariant/43464077639789', // 75 / Sakura Fizz / Brown Max
-        'gid://shopify/ProductVariant/43464077672557', // 75 / Sakura Fizz / Blush Max
-        'gid://shopify/ProductVariant/43464077705325', // 96 / Ionic White / Red Max
-        'gid://shopify/ProductVariant/43464077738093', // 96 / Ionic White / Brown Max
-        'gid://shopify/ProductVariant/43464077770861', // 96 / Ionic White / Blush Max
-        'gid://shopify/ProductVariant/43464055816301', // 96 / Obsidian Black / Red Max
-        'gid://shopify/ProductVariant/43464055980141', // 96 / Obsidian Black / Brown Max
-        'gid://shopify/ProductVariant/43464056143981', // 96 / Obsidian Black / Blush Max
-        'gid://shopify/ProductVariant/43464077803629', // 96 / Sakura Fizz / Red Max
-        'gid://shopify/ProductVariant/43464077836397', // 96 / Sakura Fizz / Brown Max
-        'gid://shopify/ProductVariant/43464077869165', // 96 / Sakura Fizz / Blush Max
-        'gid://shopify/ProductVariant/43464077312109', // 65 / Ionic White / Red Max
-        'gid://shopify/ProductVariant/43464077344877', // 65 / Ionic White / Brown Max
-        'gid://shopify/ProductVariant/43464077377645', // 65 / Ionic White / Blush Max
-        'gid://shopify/ProductVariant/43463940964461', // 65 / Obsidian Black / Red Max
-        'gid://shopify/ProductVariant/43463941128301', // 65 / Obsidian Black / Brown Max
-        'gid://shopify/ProductVariant/43463941292141', // 65 / Obsidian Black / Blush Max
-        'gid://shopify/ProductVariant/43464077410413', // 65 / Sakura Fizz / Red Max
-        'gid://shopify/ProductVariant/43464077443181', // 65 / Sakura Fizz / Brown Max
-        'gid://shopify/ProductVariant/43464077475949', // 65 / Sakura Fizz / Blush Max
-        // NuPhy Gem80 (gem80-t)
-        'gid://shopify/ProductVariant/40929293893741', // Mystic Indigo / Not Included / Not Included
-        'gid://shopify/ProductVariant/40929293926509', // Mystic Indigo / Not Included / Themed Keycaps (+$15)
-        'gid://shopify/ProductVariant/40929293959277', // Mystic Indigo / Mint (+$15) / Not Included
-        'gid://shopify/ProductVariant/40929293992045', // Mystic Indigo / Mint (+$15) / Themed Keycaps (+$15)
-        'gid://shopify/ProductVariant/40929294024813', // Mystic Indigo / Raspberry (+$15) / Not Included
-        'gid://shopify/ProductVariant/40929294057581', // Mystic Indigo / Raspberry (+$15) / Themed Keycaps (+$15)
-        'gid://shopify/ProductVariant/40929294090349', // Mystic Indigo / Lemon (+$15) / Not Included
-        'gid://shopify/ProductVariant/40929294123117', // Mystic Indigo / Lemon (+$15) / Themed Keycaps (+$15)
-        'gid://shopify/ProductVariant/40929294155885', // Mystic Indigo / Panda (+$20) / Not Included
-        'gid://shopify/ProductVariant/40929294188653', // Mystic Indigo / Panda (+$20) / Themed Keycaps (+$15)
-        'gid://shopify/ProductVariant/40929293566061', // Obsidian Black / Not Included / Not Included
-        'gid://shopify/ProductVariant/40929293598829', // Obsidian Black / Not Included / Themed Keycaps (+$15)
-        'gid://shopify/ProductVariant/40929293631597', // Obsidian Black / Mint (+$15) / Not Included
-        'gid://shopify/ProductVariant/40929293664365', // Obsidian Black / Mint (+$15) / Themed Keycaps (+$15)
-        'gid://shopify/ProductVariant/40929293697133', // Obsidian Black / Raspberry (+$15) / Not Included
-        'gid://shopify/ProductVariant/40929293729901', // Obsidian Black / Raspberry (+$15) / Themed Keycaps (+$15)
-        'gid://shopify/ProductVariant/40929293762669', // Obsidian Black / Lemon (+$15) / Not Included
-        'gid://shopify/ProductVariant/40929293795437', // Obsidian Black / Lemon (+$15) / Themed Keycaps (+$15)
-        'gid://shopify/ProductVariant/40929293828205', // Obsidian Black / Panda (+$20) / Not Included
-        'gid://shopify/ProductVariant/40929293860973', // Obsidian Black / Panda (+$20) / Themed Keycaps (+$15)
-        'gid://shopify/ProductVariant/40929294549101', // Inca Rose / Not Included / Not Included
-        'gid://shopify/ProductVariant/40929294581869', // Inca Rose / Not Included / Themed Keycaps (+$15)
-        'gid://shopify/ProductVariant/40929294614637', // Inca Rose / Mint (+$15) / Not Included
-        'gid://shopify/ProductVariant/40929294647405', // Inca Rose / Mint (+$15) / Themed Keycaps (+$15)
-        'gid://shopify/ProductVariant/40929294680173', // Inca Rose / Raspberry (+$15) / Not Included
-        'gid://shopify/ProductVariant/40929294712941', // Inca Rose / Raspberry (+$15) / Themed Keycaps (+$15)
-        'gid://shopify/ProductVariant/40929294745709', // Inca Rose / Lemon (+$15) / Not Included
-        'gid://shopify/ProductVariant/40929294778477', // Inca Rose / Lemon (+$15) / Themed Keycaps (+$15)
-        'gid://shopify/ProductVariant/40929294811245', // Inca Rose / Panda (+$20) / Not Included
-        'gid://shopify/ProductVariant/40929294844013', // Inca Rose / Panda (+$20) / Themed Keycaps (+$15)
-        // NuPhy WH80 Gaming Keyboard (nuphy-wh80-gaming-keyboard)
-        'gid://shopify/ProductVariant/43657239986285', // Nova White / Magnetic Jade Dragon-N
-        'gid://shopify/ProductVariant/43661978796141', // Nebula Black / Magnetic Jade Dragon-N
-        // NuPhyX BH65 Keyboard (bh65)
-        'gid://shopify/ProductVariant/45219769319533', // Magnetic Jade Pro
-        'gid://shopify/ProductVariant/42342288752749', // Magnetic Jade Gaming
         // NuPhy Halo96 V2
         'gid://shopify/ProductVariant/43556102996077', // Ionic White / Blush (42gf)
         'gid://shopify/ProductVariant/44425538666605', // Ionic White / Lemon (55gf)
@@ -389,9 +324,6 @@ const CAMPAIGNS = [
         'gid://shopify/ProductVariant/43556083630189', // Sakura Fizz / Blush (42gf)
         'gid://shopify/ProductVariant/44318570512493', // Obsidian Black / Raspberry (46gf)
         'gid://shopify/ProductVariant/45054163386477', // Ionic White / Raspberry (46gf)
-        // NuPhy Field75 HE V2
-        'gid://shopify/ProductVariant/44856176312429', // Magnetic Silver
-        'gid://shopify/ProductVariant/44856176279661', // Magnetic Jade Dragon-N
         // NuPhy Halo65 V2
         'gid://shopify/ProductVariant/41414603243629', // Ionic White / Mint (37gf)
         'gid://shopify/ProductVariant/41414603407469', // Ionic White / Raspberry (46gf)
@@ -413,86 +345,10 @@ const CAMPAIGNS = [
         'gid://shopify/ProductVariant/41414605406317', // Sakura Fizz / Raspberry (46gf)
         'gid://shopify/ProductVariant/41414605570157', // Sakura Fizz / Lemon (55gf)
         'gid://shopify/ProductVariant/41414605766765', // Sakura Fizz / Blush (42gf)
-        // NuPhy Node Series High-profile
-        'gid://shopify/ProductVariant/43805139730541', // 75-ANSI-US English / Lunar White / Red Max
-        'gid://shopify/ProductVariant/43805139763309', // 75-ANSI-US English / Lunar White / Brown Max
-        'gid://shopify/ProductVariant/43813526700141', // 75-ANSI-US English / Lunar White / Blush Max
-        'gid://shopify/ProductVariant/43805139828845', // 75-ANSI-US English / Ink Gray / Red Max
-        'gid://shopify/ProductVariant/43805139861613', // 75-ANSI-US English / Ink Gray / Brown Max
-        'gid://shopify/ProductVariant/43813526732909', // 75-ANSI-US English / Ink Gray / Blush Max
-        'gid://shopify/ProductVariant/43805139927149', // 75-ANSI-US English / Light Pink / Red Max
-        'gid://shopify/ProductVariant/43805139959917', // 75-ANSI-US English / Light Pink / Brown Max
-        'gid://shopify/ProductVariant/43813526765677', // 75-ANSI-US English / Light Pink / Blush Max
-        'gid://shopify/ProductVariant/43805140025453', // 100-ANSI-US English / Lunar White / Red Max
-        'gid://shopify/ProductVariant/43805140058221', // 100-ANSI-US English / Lunar White / Brown Max
-        'gid://shopify/ProductVariant/43813526798445', // 100-ANSI-US English / Lunar White / Blush Max
-        'gid://shopify/ProductVariant/43805140123757', // 100-ANSI-US English / Ink Gray / Red Max
-        'gid://shopify/ProductVariant/43805140156525', // 100-ANSI-US English / Ink Gray / Brown Max
-        'gid://shopify/ProductVariant/43813526831213', // 100-ANSI-US English / Ink Gray / Blush Max
-        'gid://shopify/ProductVariant/43805140222061', // 100-ANSI-US English / Light Pink / Red Max
-        'gid://shopify/ProductVariant/43805140254829', // 100-ANSI-US English / Light Pink / Brown Max
-        'gid://shopify/ProductVariant/43813526863981', // 100-ANSI-US English / Light Pink / Blush Max
-        'gid://shopify/ProductVariant/45135131476077', // 75-ISO-German / Lunar White / Red Max
-        'gid://shopify/ProductVariant/45135131508845', // 75-ISO-German / Lunar White / Brown Max
-        'gid://shopify/ProductVariant/45135131541613', // 75-ISO-German / Lunar White / Blush Max
-        'gid://shopify/ProductVariant/45135131574381', // 75-ISO-German / Ink Gray / Red Max
-        'gid://shopify/ProductVariant/45135131607149', // 75-ISO-German / Ink Gray / Brown Max
-        'gid://shopify/ProductVariant/45135131639917', // 75-ISO-German / Ink Gray / Blush Max
-        'gid://shopify/ProductVariant/45135132262509', // 100-ISO-German / Lunar White / Red Max
-        'gid://shopify/ProductVariant/45135132295277', // 100-ISO-German / Lunar White / Brown Max
-        'gid://shopify/ProductVariant/45135132328045', // 100-ISO-German / Lunar White / Blush Max
-        'gid://shopify/ProductVariant/45135132360813', // 100-ISO-German / Ink Gray / Red Max
-        'gid://shopify/ProductVariant/45135132393581', // 100-ISO-German / Ink Gray / Brown Max
-        'gid://shopify/ProductVariant/45135132426349', // 100-ISO-German / Ink Gray / Blush Max
-        'gid://shopify/ProductVariant/45135131279469', // 75-ISO-British / Lunar White / Red Max
-        'gid://shopify/ProductVariant/45135131312237', // 75-ISO-British / Lunar White / Brown Max
-        'gid://shopify/ProductVariant/45135131345005', // 75-ISO-British / Lunar White / Blush Max
-        'gid://shopify/ProductVariant/45135131377773', // 75-ISO-British / Ink Gray / Red Max
-        'gid://shopify/ProductVariant/45135131410541', // 75-ISO-British / Ink Gray / Brown Max
-        'gid://shopify/ProductVariant/45135131443309', // 75-ISO-British / Ink Gray / Blush Max
-        'gid://shopify/ProductVariant/45135132065901', // 100-ISO-British / Lunar White / Red Max
-        'gid://shopify/ProductVariant/45135132098669', // 100-ISO-British / Lunar White / Brown Max
-        'gid://shopify/ProductVariant/45135132131437', // 100-ISO-British / Lunar White / Blush Max
-        'gid://shopify/ProductVariant/45135132164205', // 100-ISO-British / Ink Gray / Red Max
-        'gid://shopify/ProductVariant/45135132196973', // 100-ISO-British / Ink Gray / Brown Max
-        'gid://shopify/ProductVariant/45135132229741', // 100-ISO-British / Ink Gray / Blush Max
-        'gid://shopify/ProductVariant/45135131672685', // 75-lSO-French / Lunar White / Red Max
-        'gid://shopify/ProductVariant/45135131705453', // 75-lSO-French / Lunar White / Brown Max
-        'gid://shopify/ProductVariant/45135131738221', // 75-lSO-French / Lunar White / Blush Max
-        'gid://shopify/ProductVariant/45135131770989', // 75-lSO-French / Ink Gray / Red Max
-        'gid://shopify/ProductVariant/45135131803757', // 75-lSO-French / Ink Gray / Brown Max
-        'gid://shopify/ProductVariant/45135131836525', // 75-lSO-French / Ink Gray / Blush Max
-        'gid://shopify/ProductVariant/45135132459117', // 100-lSO-French / Lunar White / Red Max
-        'gid://shopify/ProductVariant/45135132491885', // 100-lSO-French / Lunar White / Brown Max
-        'gid://shopify/ProductVariant/45135132524653', // 100-lSO-French / Lunar White / Blush Max
-        'gid://shopify/ProductVariant/45135132557421', // 100-lSO-French / Ink Gray / Red Max
-        'gid://shopify/ProductVariant/45135132590189', // 100-lSO-French / Ink Gray / Brown Max
-        'gid://shopify/ProductVariant/45135132622957', // 100-lSO-French / Ink Gray / Blush Max
-        'gid://shopify/ProductVariant/45135131869293', // 75-JIS-Japanese / Lunar White / Red Max
-        'gid://shopify/ProductVariant/45135131902061', // 75-JIS-Japanese / Lunar White / Brown Max
-        'gid://shopify/ProductVariant/45135131934829', // 75-JIS-Japanese / Lunar White / Blush Max
-        'gid://shopify/ProductVariant/45135131967597', // 75-JIS-Japanese / Ink Gray / Red Max
-        'gid://shopify/ProductVariant/45135132000365', // 75-JIS-Japanese / Ink Gray / Brown Max
-        'gid://shopify/ProductVariant/45135132033133', // 75-JIS-Japanese / Ink Gray / Blush Max
-        'gid://shopify/ProductVariant/45135132655725', // 100-JIS-Japanese / Lunar White / Red Max
-        'gid://shopify/ProductVariant/45135132688493', // 100-JIS-Japanese / Lunar White / Brown Max
-        'gid://shopify/ProductVariant/45135132721261', // 100-JIS-Japanese / Lunar White / Blush Max
-        'gid://shopify/ProductVariant/45135132754029', // 100-JIS-Japanese / Ink Gray / Red Max
-        'gid://shopify/ProductVariant/45135132786797', // 100-JIS-Japanese / Ink Gray / Brown Max
-        'gid://shopify/ProductVariant/45135132819565', // 100-JIS-Japanese / Ink Gray / Blush Max
-        //Kick75 
-        'gid://shopify/ProductVariant/43805710614637', // High / NuPhyIO / Red
-        'gid://shopify/ProductVariant/43805710647405', // High / NuPhyIO / Brown
-        'gid://shopify/ProductVariant/43805710680173', // High / NuPhyIO / Silver
-        'gid://shopify/ProductVariant/43805710712941', // High / NuPhyIO / Blush
-        'gid://shopify/ProductVariant/43805710745709', // High / QMK & VIA / Red
-        'gid://shopify/ProductVariant/43805710778477', // High / QMK & VIA / Brown
-        'gid://shopify/ProductVariant/43805710811245', // High / QMK & VIA / Silver
-        'gid://shopify/ProductVariant/43805710844013', // High / QMK & VIA / Blush
       ]
     ),
     giftVariantIds: new Set([
-     'gid://shopify/ProductVariant/45378334130285',
+        'gid://shopify/ProductVariant/45048753029229',
     ]),
   },
 ];
