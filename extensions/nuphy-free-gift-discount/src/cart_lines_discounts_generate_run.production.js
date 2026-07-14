@@ -48,142 +48,8 @@ const DISCOUNT_MESSAGE = "Free Gift";
 const CAMPAIGNS = [
   // 键帽 赠品🎁 Free Summer Keycaps (2026) ───────────────
   {
-    id: "bogo-Summer-Keycaps-2026",
+    id: "bogo-QMK-Keycaps-2026-0708",
     triggerVariantIds: new Set([
-        // NuPhy Air75 V3
-        'gid://shopify/ProductVariant/42579051315309', // Nova White / Blush nano / ANSI - US English
-        'gid://shopify/ProductVariant/42633976053869', // Nova White / Blush nano / JIS - Japanese
-        'gid://shopify/ProductVariant/42633976086637', // Nova White / Blush nano / ISO - German
-        'gid://shopify/ProductVariant/42633976119405', // Nova White / Blush nano / ISO - British
-        'gid://shopify/ProductVariant/42633976152173', // Nova White / Blush nano / lSO - French
-        'gid://shopify/ProductVariant/42368130711661', // Nova White / Red nano / ANSI - US English
-        'gid://shopify/ProductVariant/42633975791725', // Nova White / Red nano / JIS - Japanese
-        'gid://shopify/ProductVariant/42633975824493', // Nova White / Red nano / ISO - German
-        'gid://shopify/ProductVariant/42633975857261', // Nova White / Red nano / ISO - British
-        'gid://shopify/ProductVariant/42633975890029', // Nova White / Red nano / lSO - French
-        'gid://shopify/ProductVariant/42579051282541', // Nova White / Brown nano / ANSI - US English
-        'gid://shopify/ProductVariant/42633975922797', // Nova White / Brown nano / JIS - Japanese
-        'gid://shopify/ProductVariant/42633975955565', // Nova White / Brown nano / ISO - German
-        'gid://shopify/ProductVariant/42633975988333', // Nova White / Brown nano / ISO - British
-        'gid://shopify/ProductVariant/42633976021101', // Nova White / Brown nano / lSO - French
-        'gid://shopify/ProductVariant/42579051380845', // Nebula Dark / Blush nano / ANSI - US English
-        'gid://shopify/ProductVariant/42368130744429', // Nebula Dark / Red nano / ANSI - US English
-        'gid://shopify/ProductVariant/42579051348077', // Nebula Dark / Brown nano / ANSI - US English
-        // NuPhy Air65 V3
-        'gid://shopify/ProductVariant/43879425736813', // Nova White / Blush nano / ANSI - US English
-        'gid://shopify/ProductVariant/43879425769581', // Nova White / Blush nano / JIS - Japanese
-        'gid://shopify/ProductVariant/43879425802349', // Nova White / Blush nano / ISO - German
-        'gid://shopify/ProductVariant/43879425835117', // Nova White / Blush nano / ISO - British
-        'gid://shopify/ProductVariant/43879425867885', // Nova White / Blush nano / lSO - French
-        'gid://shopify/ProductVariant/43879425409133', // Nova White / Red nano / ANSI - US English
-        'gid://shopify/ProductVariant/43879425441901', // Nova White / Red nano / JIS - Japanese
-        'gid://shopify/ProductVariant/43879425474669', // Nova White / Red nano / ISO - German
-        'gid://shopify/ProductVariant/43879425507437', // Nova White / Red nano / ISO - British
-        'gid://shopify/ProductVariant/43879425540205', // Nova White / Red nano / lSO - French
-        'gid://shopify/ProductVariant/43879425572973', // Nova White / Brown nano / ANSI - US English
-        'gid://shopify/ProductVariant/43879425605741', // Nova White / Brown nano / JIS - Japanese
-        'gid://shopify/ProductVariant/43879425638509', // Nova White / Brown nano / ISO - German
-        'gid://shopify/ProductVariant/43879425671277', // Nova White / Brown nano / ISO - British
-        'gid://shopify/ProductVariant/43879425704045', // Nova White / Brown nano / lSO - French
-        'gid://shopify/ProductVariant/43879425966189', // Nebula Dark / Blush nano / ANSI - US English
-        'gid://shopify/ProductVariant/43879425900653', // Nebula Dark / Red nano / ANSI - US English
-        'gid://shopify/ProductVariant/43879425933421', // Nebula Dark / Brown nano / ANSI - US English
-        // NuPhy Air100 V3
-        'gid://shopify/ProductVariant/44885760344173', // Nova White / Blush nano / ANSI - US English
-        'gid://shopify/ProductVariant/44885760376941', // Nova White / Blush nano / JIS - Japanese
-        'gid://shopify/ProductVariant/44885760409709', // Nova White / Blush nano / ISO - German
-        'gid://shopify/ProductVariant/44885760442477', // Nova White / Blush nano / ISO - British
-        'gid://shopify/ProductVariant/44885760475245', // Nova White / Blush nano / lSO - French
-        'gid://shopify/ProductVariant/44885760016493', // Nova White / Red nano / ANSI - US English
-        'gid://shopify/ProductVariant/44885760049261', // Nova White / Red nano / JIS - Japanese
-        'gid://shopify/ProductVariant/44885760082029', // Nova White / Red nano / ISO - German
-        'gid://shopify/ProductVariant/44885760114797', // Nova White / Red nano / ISO - British
-        'gid://shopify/ProductVariant/44885760147565', // Nova White / Red nano / lSO - French
-        'gid://shopify/ProductVariant/44885760180333', // Nova White / Brown nano / ANSI - US English
-        'gid://shopify/ProductVariant/44885760213101', // Nova White / Brown nano / JIS - Japanese
-        'gid://shopify/ProductVariant/44885760245869', // Nova White / Brown nano / ISO - German
-        'gid://shopify/ProductVariant/44885760278637', // Nova White / Brown nano / ISO - British
-        'gid://shopify/ProductVariant/44885760311405', // Nova White / Brown nano / lSO - French
-        'gid://shopify/ProductVariant/44885760573549', // Nebula Dark / Blush nano / ANSI - US English
-        'gid://shopify/ProductVariant/44885760508013', // Nebula Dark / Red nano / ANSI - US English
-        'gid://shopify/ProductVariant/44885760540781', // Nebula Dark / Brown nano / ANSI - US English
-        // NuPhy Node Series Low-profile
-        'gid://shopify/ProductVariant/43791048835181', // 75-ANSI-US English / Lunar White / Red nano
-        'gid://shopify/ProductVariant/43791048867949', // 75-ANSI-US English / Lunar White / Brown nano
-        'gid://shopify/ProductVariant/43791048900717', // 75-ANSI-US English / Lunar White / Blush nano
-        'gid://shopify/ProductVariant/43791048933485', // 75-ANSI-US English / Ink Gray / Red nano
-        'gid://shopify/ProductVariant/43791048966253', // 75-ANSI-US English / Ink Gray / Brown nano
-        'gid://shopify/ProductVariant/43791048999021', // 75-ANSI-US English / Ink Gray / Blush nano
-        'gid://shopify/ProductVariant/43791049031789', // 75-ANSI-US English / Light Pink / Red nano
-        'gid://shopify/ProductVariant/43791049064557', // 75-ANSI-US English / Light Pink / Brown nano
-        'gid://shopify/ProductVariant/43791049097325', // 75-ANSI-US English / Light Pink / Blush nano
-        'gid://shopify/ProductVariant/43797388820589', // 100-ANSI-US English / Lunar White / Red nano
-        'gid://shopify/ProductVariant/43797388853357', // 100-ANSI-US English / Lunar White / Brown nano
-        'gid://shopify/ProductVariant/43797388886125', // 100-ANSI-US English / Lunar White / Blush nano
-        'gid://shopify/ProductVariant/43797388918893', // 100-ANSI-US English / Ink Gray / Red nano
-        'gid://shopify/ProductVariant/43797388951661', // 100-ANSI-US English / Ink Gray / Brown nano
-        'gid://shopify/ProductVariant/43797388984429', // 100-ANSI-US English / Ink Gray / Blush nano
-        'gid://shopify/ProductVariant/43797389017197', // 100-ANSI-US English / Light Pink / Red nano
-        'gid://shopify/ProductVariant/43797389049965', // 100-ANSI-US English / Light Pink / Brown nano
-        'gid://shopify/ProductVariant/43797389082733', // 100-ANSI-US English / Light Pink / Blush nano
-        'gid://shopify/ProductVariant/45135049556077', // 75-ISO-German / Lunar White / Red nano
-        'gid://shopify/ProductVariant/45135049588845', // 75-ISO-German / Lunar White / Brown nano
-        'gid://shopify/ProductVariant/45135049621613', // 75-ISO-German / Lunar White / Blush nano
-        'gid://shopify/ProductVariant/45135049654381', // 75-ISO-German / Ink Gray / Red nano
-        'gid://shopify/ProductVariant/45135049687149', // 75-ISO-German / Ink Gray / Brown nano
-        'gid://shopify/ProductVariant/45135049719917', // 75-ISO-German / Ink Gray / Blush nano
-        'gid://shopify/ProductVariant/45135050342509', // 100-ISO-German / Lunar White / Red nano
-        'gid://shopify/ProductVariant/45135050375277', // 100-ISO-German / Lunar White / Brown nano
-        'gid://shopify/ProductVariant/45135050408045', // 100-ISO-German / Lunar White / Blush nano
-        'gid://shopify/ProductVariant/45135050440813', // 100-ISO-German / Ink Gray / Red nano
-        'gid://shopify/ProductVariant/45135050473581', // 100-ISO-German / Ink Gray / Brown nano
-        'gid://shopify/ProductVariant/45135050506349', // 100-ISO-German / Ink Gray / Blush nano
-        'gid://shopify/ProductVariant/45135049359469', // 75-ISO-British / Lunar White / Red nano
-        'gid://shopify/ProductVariant/45135049392237', // 75-ISO-British / Lunar White / Brown nano
-        'gid://shopify/ProductVariant/45135049425005', // 75-ISO-British / Lunar White / Blush nano
-        'gid://shopify/ProductVariant/45135049457773', // 75-ISO-British / Ink Gray / Red nano
-        'gid://shopify/ProductVariant/45135049490541', // 75-ISO-British / Ink Gray / Brown nano
-        'gid://shopify/ProductVariant/45135049523309', // 75-ISO-British / Ink Gray / Blush nano
-        'gid://shopify/ProductVariant/45135050145901', // 100-ISO-British / Lunar White / Red nano
-        'gid://shopify/ProductVariant/45135050178669', // 100-ISO-British / Lunar White / Brown nano
-        'gid://shopify/ProductVariant/45135050211437', // 100-ISO-British / Lunar White / Blush nano
-        'gid://shopify/ProductVariant/45135050244205', // 100-ISO-British / Ink Gray / Red nano
-        'gid://shopify/ProductVariant/45135050276973', // 100-ISO-British / Ink Gray / Brown nano
-        'gid://shopify/ProductVariant/45135050309741', // 100-ISO-British / Ink Gray / Blush nano
-        'gid://shopify/ProductVariant/45135049752685', // 75-lSO-French / Lunar White / Red nano
-        'gid://shopify/ProductVariant/45135049785453', // 75-lSO-French / Lunar White / Brown nano
-        'gid://shopify/ProductVariant/45135049818221', // 75-lSO-French / Lunar White / Blush nano
-        'gid://shopify/ProductVariant/45135049850989', // 75-lSO-French / Ink Gray / Red nano
-        'gid://shopify/ProductVariant/45135049883757', // 75-lSO-French / Ink Gray / Brown nano
-        'gid://shopify/ProductVariant/45135049916525', // 75-lSO-French / Ink Gray / Blush nano
-        'gid://shopify/ProductVariant/45135050539117', // 100-lSO-French / Lunar White / Red nano
-        'gid://shopify/ProductVariant/45135050571885', // 100-lSO-French / Lunar White / Brown nano
-        'gid://shopify/ProductVariant/45135050604653', // 100-lSO-French / Lunar White / Blush nano
-        'gid://shopify/ProductVariant/45135050637421', // 100-lSO-French / Ink Gray / Red nano
-        'gid://shopify/ProductVariant/45135050670189', // 100-lSO-French / Ink Gray / Brown nano
-        'gid://shopify/ProductVariant/45135050702957', // 100-lSO-French / Ink Gray / Blush nano
-        'gid://shopify/ProductVariant/45135049949293', // 75-JIS-Japanese / Lunar White / Red nano
-        'gid://shopify/ProductVariant/45135049982061', // 75-JIS-Japanese / Lunar White / Brown nano
-        'gid://shopify/ProductVariant/45135050014829', // 75-JIS-Japanese / Lunar White / Blush nano
-        'gid://shopify/ProductVariant/45135050047597', // 75-JIS-Japanese / Ink Gray / Red nano
-        'gid://shopify/ProductVariant/45135050080365', // 75-JIS-Japanese / Ink Gray / Brown nano
-        'gid://shopify/ProductVariant/45135050113133', // 75-JIS-Japanese / Ink Gray / Blush nano
-        'gid://shopify/ProductVariant/45135050735725', // 100-JIS-Japanese / Lunar White / Red nano
-        'gid://shopify/ProductVariant/45135050768493', // 100-JIS-Japanese / Lunar White / Brown nano
-        'gid://shopify/ProductVariant/45135050801261', // 100-JIS-Japanese / Lunar White / Blush nano
-        'gid://shopify/ProductVariant/45135050834029', // 100-JIS-Japanese / Ink Gray / Red nano
-        'gid://shopify/ProductVariant/45135050866797', // 100-JIS-Japanese / Ink Gray / Brown nano
-        'gid://shopify/ProductVariant/45135050899565', // 100-JIS-Japanese / Ink Gray / Blush nano
-        // NuPhy Kick75
-        'gid://shopify/ProductVariant/43805710352493', // Low / NuPhyIO / Red
-        'gid://shopify/ProductVariant/43805710385261', // Low / NuPhyIO / Brown
-        'gid://shopify/ProductVariant/43805710418029', // Low / NuPhyIO / Silver
-        'gid://shopify/ProductVariant/43805710450797', // Low / NuPhyIO / Blush
-        'gid://shopify/ProductVariant/43805710483565', // Low / QMK & VIA / Red
-        'gid://shopify/ProductVariant/43805710516333', // Low / QMK & VIA / Brown
-        'gid://shopify/ProductVariant/43805710549101', // Low / QMK & VIA / Silver
-        'gid://shopify/ProductVariant/43805710581869', // Low / QMK & VIA / Blush
-
         // NuPhy Air75 V2
         'gid://shopify/ProductVariant/40677451399277', // Lunar Gray / Blue 2.0
         'gid://shopify/ProductVariant/40635217674349', // Lunar Gray / Aloe (37gf)
@@ -200,40 +66,6 @@ const CAMPAIGNS = [
         'gid://shopify/ProductVariant/45054112366701', // Basalt Black / Wisteria (55gf)
         'gid://shopify/ProductVariant/40671477039213', // Basalt Black / Moss (60gf)
         'gid://shopify/ProductVariant/45054113972333', // Basalt Black / Cowberry (45gf)
-        // NuPhy Air75 HE
-        'gid://shopify/ProductVariant/41842485461101', // Low-Profile Magnetic Jade / None / None
-        'gid://shopify/ProductVariant/41842485526637', // Low-Profile Magnetic Jade / None / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41842485493869', // Low-Profile Magnetic Jade / Acrylic Frosted / None
-        'gid://shopify/ProductVariant/41842485559405', // Low-Profile Magnetic Jade / Acrylic Frosted / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41842486902893', // Low-Profile Magnetic Jade / Acrylic Noir / None
-        'gid://shopify/ProductVariant/41842487033965', // Low-Profile Magnetic Jade / Acrylic Noir / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41842486935661', // Low-Profile Magnetic Jade / Beech / None
-        'gid://shopify/ProductVariant/41842487066733', // Low-Profile Magnetic Jade / Beech / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41842486968429', // Low-Profile Magnetic Jade / Black Oak / None
-        'gid://shopify/ProductVariant/41842487099501', // Low-Profile Magnetic Jade / Black Oak / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41842487001197', // Low-Profile Magnetic Jade / Walnut / None
-        'gid://shopify/ProductVariant/41842487132269', // Low-Profile Magnetic Jade / Walnut / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41842485592173', // Low-Profile Magnetic Jade Pro / None / None
-        'gid://shopify/ProductVariant/41842485657709', // Low-Profile Magnetic Jade Pro / None / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41842485624941', // Low-Profile Magnetic Jade Pro / Acrylic Frosted / None
-        'gid://shopify/ProductVariant/41842485690477', // Low-Profile Magnetic Jade Pro / Acrylic Frosted / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41842487165037', // Low-Profile Magnetic Jade Pro / Acrylic Noir / None
-        'gid://shopify/ProductVariant/41842487296109', // Low-Profile Magnetic Jade Pro / Acrylic Noir / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41842487197805', // Low-Profile Magnetic Jade Pro / Beech / None
-        'gid://shopify/ProductVariant/41842487328877', // Low-Profile Magnetic Jade Pro / Beech / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41842487230573', // Low-Profile Magnetic Jade Pro / Black Oak / None
-        'gid://shopify/ProductVariant/41842487361645', // Low-Profile Magnetic Jade Pro / Black Oak / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41842487263341', // Low-Profile Magnetic Jade Pro / Walnut / None
-        'gid://shopify/ProductVariant/41842487394413', // Low-Profile Magnetic Jade Pro / Walnut / Canopus Shine-through nSA
-        // NuPhy Air60 HE
-        'gid://shopify/ProductVariant/41724980822125', // Low-Profile Magnetic Jade / None / None
-        'gid://shopify/ProductVariant/41724992585837', // Low-Profile Magnetic Jade / None / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41724980854893', // Low-Profile Magnetic Jade / Acrylic Frosted / None
-        'gid://shopify/ProductVariant/41724992651373', // Low-Profile Magnetic Jade / Acrylic Frosted / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41795205890157', // Low-Profile Magnetic Jade Pro / None / None
-        'gid://shopify/ProductVariant/41795205955693', // Low-Profile Magnetic Jade Pro / None / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41795205922925', // Low-Profile Magnetic Jade Pro / Acrylic Frosted / None
-        'gid://shopify/ProductVariant/41795205988461', // Low-Profile Magnetic Jade Pro / Acrylic Frosted / Canopus Shine-through nSA
         // NuPhy Air96 V2
         'gid://shopify/ProductVariant/40735416025197', // Lunar Gray / Blue 2.0
         'gid://shopify/ProductVariant/40735416123501', // Lunar Gray / Aloe (37gf)
@@ -272,7 +104,7 @@ const CAMPAIGNS = [
         'gid://shopify/ProductVariant/40715869716589', // Lunar Gray / Moss (60gf)
     ]),
     giftVariantIds: new Set([
-     'gid://shopify/ProductVariant/45378325839981',
+     'gid://shopify/ProductVariant/45378325839981', // Default Title
     ]),
   },
 
