@@ -50,6 +50,63 @@ const CAMPAIGNS = [
   {
     id: "bogo-QMK-Keycaps-2026-0708",
     triggerVariantIds: new Set([
+              // NuPhy Air75 V3
+        'gid://shopify/ProductVariant/42579051315309', // Nova White / Blush nano / ANSI - US English
+        'gid://shopify/ProductVariant/42633976053869', // Nova White / Blush nano / JIS - Japanese
+        'gid://shopify/ProductVariant/42633976086637', // Nova White / Blush nano / ISO - German
+        'gid://shopify/ProductVariant/42633976119405', // Nova White / Blush nano / ISO - British
+        'gid://shopify/ProductVariant/42633976152173', // Nova White / Blush nano / lSO - French
+        'gid://shopify/ProductVariant/42368130711661', // Nova White / Red nano / ANSI - US English
+        'gid://shopify/ProductVariant/42633975791725', // Nova White / Red nano / JIS - Japanese
+        'gid://shopify/ProductVariant/42633975824493', // Nova White / Red nano / ISO - German
+        'gid://shopify/ProductVariant/42633975857261', // Nova White / Red nano / ISO - British
+        'gid://shopify/ProductVariant/42633975890029', // Nova White / Red nano / lSO - French
+        'gid://shopify/ProductVariant/42579051282541', // Nova White / Brown nano / ANSI - US English
+        'gid://shopify/ProductVariant/42633975922797', // Nova White / Brown nano / JIS - Japanese
+        'gid://shopify/ProductVariant/42633975955565', // Nova White / Brown nano / ISO - German
+        'gid://shopify/ProductVariant/42633975988333', // Nova White / Brown nano / ISO - British
+        'gid://shopify/ProductVariant/42633976021101', // Nova White / Brown nano / lSO - French
+        'gid://shopify/ProductVariant/42579051380845', // Nebula Dark / Blush nano / ANSI - US English
+        'gid://shopify/ProductVariant/42368130744429', // Nebula Dark / Red nano / ANSI - US English
+        'gid://shopify/ProductVariant/42579051348077', // Nebula Dark / Brown nano / ANSI - US English
+        // NuPhy Air65 V3
+        'gid://shopify/ProductVariant/43879425736813', // Nova White / Blush nano / ANSI - US English
+        'gid://shopify/ProductVariant/43879425769581', // Nova White / Blush nano / JIS - Japanese
+        'gid://shopify/ProductVariant/43879425802349', // Nova White / Blush nano / ISO - German
+        'gid://shopify/ProductVariant/43879425835117', // Nova White / Blush nano / ISO - British
+        'gid://shopify/ProductVariant/43879425867885', // Nova White / Blush nano / lSO - French
+        'gid://shopify/ProductVariant/43879425409133', // Nova White / Red nano / ANSI - US English
+        'gid://shopify/ProductVariant/43879425441901', // Nova White / Red nano / JIS - Japanese
+        'gid://shopify/ProductVariant/43879425474669', // Nova White / Red nano / ISO - German
+        'gid://shopify/ProductVariant/43879425507437', // Nova White / Red nano / ISO - British
+        'gid://shopify/ProductVariant/43879425540205', // Nova White / Red nano / lSO - French
+        'gid://shopify/ProductVariant/43879425572973', // Nova White / Brown nano / ANSI - US English
+        'gid://shopify/ProductVariant/43879425605741', // Nova White / Brown nano / JIS - Japanese
+        'gid://shopify/ProductVariant/43879425638509', // Nova White / Brown nano / ISO - German
+        'gid://shopify/ProductVariant/43879425671277', // Nova White / Brown nano / ISO - British
+        'gid://shopify/ProductVariant/43879425704045', // Nova White / Brown nano / lSO - French
+        'gid://shopify/ProductVariant/43879425966189', // Nebula Dark / Blush nano / ANSI - US English
+        'gid://shopify/ProductVariant/43879425900653', // Nebula Dark / Red nano / ANSI - US English
+        'gid://shopify/ProductVariant/43879425933421', // Nebula Dark / Brown nano / ANSI - US English
+        // NuPhy Air100 V3
+        'gid://shopify/ProductVariant/44885760344173', // Nova White / Blush nano / ANSI - US English
+        'gid://shopify/ProductVariant/44885760376941', // Nova White / Blush nano / JIS - Japanese
+        'gid://shopify/ProductVariant/44885760409709', // Nova White / Blush nano / ISO - German
+        'gid://shopify/ProductVariant/44885760442477', // Nova White / Blush nano / ISO - British
+        'gid://shopify/ProductVariant/44885760475245', // Nova White / Blush nano / lSO - French
+        'gid://shopify/ProductVariant/44885760016493', // Nova White / Red nano / ANSI - US English
+        'gid://shopify/ProductVariant/44885760049261', // Nova White / Red nano / JIS - Japanese
+        'gid://shopify/ProductVariant/44885760082029', // Nova White / Red nano / ISO - German
+        'gid://shopify/ProductVariant/44885760114797', // Nova White / Red nano / ISO - British
+        'gid://shopify/ProductVariant/44885760147565', // Nova White / Red nano / lSO - French
+        'gid://shopify/ProductVariant/44885760180333', // Nova White / Brown nano / ANSI - US English
+        'gid://shopify/ProductVariant/44885760213101', // Nova White / Brown nano / JIS - Japanese
+        'gid://shopify/ProductVariant/44885760245869', // Nova White / Brown nano / ISO - German
+        'gid://shopify/ProductVariant/44885760278637', // Nova White / Brown nano / ISO - British
+        'gid://shopify/ProductVariant/44885760311405', // Nova White / Brown nano / lSO - French
+        'gid://shopify/ProductVariant/44885760573549', // Nebula Dark / Blush nano / ANSI - US English
+        'gid://shopify/ProductVariant/44885760508013', // Nebula Dark / Red nano / ANSI - US English
+        'gid://shopify/ProductVariant/44885760540781', // Nebula Dark / Brown nano / ANSI - US English
         // NuPhy Air75 V2
         'gid://shopify/ProductVariant/40677451399277', // Lunar Gray / Blue 2.0
         'gid://shopify/ProductVariant/40635217674349', // Lunar Gray / Aloe (37gf)
