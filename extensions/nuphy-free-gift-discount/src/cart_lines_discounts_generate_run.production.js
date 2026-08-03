@@ -48,7 +48,7 @@ const DISCOUNT_MESSAGE = "Free Gift";
 const CAMPAIGNS = [
   // 键帽 赠品🎁 Free Summer Keycaps (2026) ───────────────
   {
-    id: "bogo-QMK-Keycaps-2026-0708",
+    id: "bogo-V3-Keycaps-2026-0803",
     triggerVariantIds: new Set([
               // NuPhy Air75 V3
         'gid://shopify/ProductVariant/42579051315309', // Nova White / Blush nano / ANSI - US English
@@ -107,58 +107,6 @@ const CAMPAIGNS = [
         'gid://shopify/ProductVariant/44885760573549', // Nebula Dark / Blush nano / ANSI - US English
         'gid://shopify/ProductVariant/44885760508013', // Nebula Dark / Red nano / ANSI - US English
         'gid://shopify/ProductVariant/44885760540781', // Nebula Dark / Brown nano / ANSI - US English
-        // NuPhy Air75 V2
-        'gid://shopify/ProductVariant/40677451399277', // Lunar Gray / Blue 2.0
-        'gid://shopify/ProductVariant/40635217674349', // Lunar Gray / Aloe (37gf)
-        'gid://shopify/ProductVariant/40635217739885', // Lunar Gray / Wisteria (55gf)
-        'gid://shopify/ProductVariant/40635217805421', // Lunar Gray / Moss (60gf)
-        'gid://shopify/ProductVariant/40635218034797', // Lunar Gray / Red 2.0
-        'gid://shopify/ProductVariant/40635218067565', // Lunar Gray / Brown 2.0
-        'gid://shopify/ProductVariant/40635217707117', // Lunar Gray / Cowberry (45gf)
-        'gid://shopify/ProductVariant/40677451497581', // Ionic White / Blue 2.0
-        'gid://shopify/ProductVariant/40635217838189', // Ionic White / Aloe (37gf)
-        'gid://shopify/ProductVariant/40635217903725', // Ionic White / Wisteria (55gf)
-        'gid://shopify/ProductVariant/40635217969261', // Ionic White / Moss (60gf)
-        'gid://shopify/ProductVariant/40671476744301', // Basalt Black / Aloe (37gf)
-        'gid://shopify/ProductVariant/45054112366701', // Basalt Black / Wisteria (55gf)
-        'gid://shopify/ProductVariant/40671477039213', // Basalt Black / Moss (60gf)
-        'gid://shopify/ProductVariant/45054113972333', // Basalt Black / Cowberry (45gf)
-        // NuPhy Air96 V2
-        'gid://shopify/ProductVariant/40735416025197', // Lunar Gray / Blue 2.0
-        'gid://shopify/ProductVariant/40735416123501', // Lunar Gray / Aloe (37gf)
-        'gid://shopify/ProductVariant/40735415828589', // Lunar Gray / Red 2.0
-        'gid://shopify/ProductVariant/45054125408365', // Lunar Gray / Wisteria (55gf)
-        'gid://shopify/ProductVariant/45054125441133', // Lunar Gray / Cowberry (45gf)
-        'gid://shopify/ProductVariant/40735414648941', // Ionic White / Blue 2.0
-        'gid://shopify/ProductVariant/40735415042157', // Ionic White / Moss (60gf)
-        'gid://shopify/ProductVariant/45370113589357', // Lunar Gray / Moss (60gf)
-        'gid://shopify/ProductVariant/45054126293101', // Ionic White / Aloe (37gf)
-        'gid://shopify/ProductVariant/45054126325869', // Ionic White / Wisteria (55gf)
-        'gid://shopify/ProductVariant/45054126358637', // Ionic White / Cowberry (45gf)
-        'gid://shopify/ProductVariant/40735415337069', // Basalt Black / Blue 2.0
-        'gid://shopify/ProductVariant/40735415730285', // Basalt Black / Moss (60gf)
-        'gid://shopify/ProductVariant/40735415435373', // Basalt Black / Aloe (37gf)
-        // NuPhy Air60 V2
-        'gid://shopify/ProductVariant/40715867750509', // Ionic White / Red 2.0
-        'gid://shopify/ProductVariant/40715867848813', // Ionic White / Brown 2.0
-        'gid://shopify/ProductVariant/40715867947117', // Ionic White / Blue 2.0
-        'gid://shopify/ProductVariant/40715868045421', // Ionic White / Aloe (37gf)
-        'gid://shopify/ProductVariant/40715868143725', // Ionic White / Cowberry (45gf)
-        'gid://shopify/ProductVariant/45053840785517', // Basalt Black / Cowberry (45gf)
-        'gid://shopify/ProductVariant/40715868242029', // Ionic White / Wisteria (55gf)
-        'gid://shopify/ProductVariant/40715868340333', // Ionic White / Moss (60gf)
-        'gid://shopify/ProductVariant/40715868536941', // Basalt Black / Brown 2.0
-        'gid://shopify/ProductVariant/40715868635245', // Basalt Black / Blue 2.0
-        'gid://shopify/ProductVariant/40715868733549', // Basalt Black / Aloe (37gf)
-        'gid://shopify/ProductVariant/40715868930157', // Basalt Black / Wisteria (55gf)
-        'gid://shopify/ProductVariant/40715869028461', // Basalt Black / Moss (60gf)
-        'gid://shopify/ProductVariant/40715869126765', // Lunar Gray / Red 2.0
-        'gid://shopify/ProductVariant/40715869225069', // Lunar Gray / Brown 2.0
-        'gid://shopify/ProductVariant/40715869323373', // Lunar Gray / Blue 2.0
-        'gid://shopify/ProductVariant/40715869421677', // Lunar Gray / Aloe (37gf)
-        'gid://shopify/ProductVariant/40715869519981', // Lunar Gray / Cowberry (45gf)
-        'gid://shopify/ProductVariant/40715869618285', // Lunar Gray / Wisteria (55gf)
-        'gid://shopify/ProductVariant/40715869716589', // Lunar Gray / Moss (60gf)
     ]),
     giftVariantIds: new Set([
      'gid://shopify/ProductVariant/45378325839981', // Default Title
@@ -166,137 +114,137 @@ const CAMPAIGNS = [
   },
 
   //手托  赠品🎁 New Free Halo V2 Exclusive Wrist Rest (Random Color) ───────────────
-  {
-    id: "bogo-QMK-2026-0708",
-    triggerVariantIds: new Set([
-        // NuPhy Halo96 V2
-        'gid://shopify/ProductVariant/43556102996077', // Ionic White / Blush (42gf)
-        'gid://shopify/ProductVariant/44425538666605', // Ionic White / Lemon (55gf)
-        'gid://shopify/ProductVariant/43556103028845', // Obsidian Black / Blush (42gf)
-        'gid://shopify/ProductVariant/45054140022893', // Obsidian Black / Lemon (55gf)
-        'gid://shopify/ProductVariant/45054139859053', // Obsidian Black / Mint (37gf)
-        'gid://shopify/ProductVariant/45054137401453', // Obsidian Black / Raspberry (46gf)
-        'gid://shopify/ProductVariant/43556103061613', // Mojito / Blush (42gf)
-        'gid://shopify/ProductVariant/41305839337581', // Mojito / Lemon (55gf)
-        'gid://shopify/ProductVariant/41305838977133', // Mojito / Mint (37gf)
-        'gid://shopify/ProductVariant/41305839140973', // Mojito / Raspberry (46gf)
-        'gid://shopify/ProductVariant/41305839501421', // Mojito / Silent Red Clear-Top (45gf)
-        'gid://shopify/ProductVariant/43556103094381', // Blue Lagoon / Blush (42gf)
-        'gid://shopify/ProductVariant/41305840025709', // Blue Lagoon / Lemon (55gf)
-        'gid://shopify/ProductVariant/41305839665261', // Blue Lagoon / Mint (37gf)
-        'gid://shopify/ProductVariant/41305839861869', // Blue Lagoon / Raspberry (46gf)
-        'gid://shopify/ProductVariant/41305840189549', // Blue Lagoon / Silent Red Clear-Top (45gf)
-        'gid://shopify/ProductVariant/43556103127149', // Sakura Fizz / Blush (42gf)
-        'gid://shopify/ProductVariant/41305840713837', // Sakura Fizz / Lemon (55gf)
-        'gid://shopify/ProductVariant/41305840353389', // Sakura Fizz / Mint (37gf)
-        'gid://shopify/ProductVariant/41305840517229', // Sakura Fizz / Raspberry (46gf)
-        // NuPhy Halo75 V2
-        'gid://shopify/ProductVariant/43556083499117', // Ionic White / Blush (42gf)
-        'gid://shopify/ProductVariant/41037253804141', // Obsidian Black / Mint (37gf)
-        'gid://shopify/ProductVariant/45054166040685', // Ionic White / Mint (37gf)
-        'gid://shopify/ProductVariant/41037254066285', // Obsidian Black / Lemon (55gf)
-        'gid://shopify/ProductVariant/45054167580781', // Ionic White / Lemon (55gf)
-        'gid://shopify/ProductVariant/43556083531885', // Obsidian Black / Blush (42gf)
-        'gid://shopify/ProductVariant/41037257277549', // Mojito / Mint (37gf)
-        'gid://shopify/ProductVariant/41037257408621', // Mojito / Raspberry (46gf)
-        'gid://shopify/ProductVariant/41037257539693', // Mojito / Lemon (55gf)
-        'gid://shopify/ProductVariant/43556083564653', // Mojito / Blush (42gf)
-        'gid://shopify/ProductVariant/41037257932909', // Blue Lagoon / Mint (37gf)
-        'gid://shopify/ProductVariant/41037258063981', // Blue Lagoon / Raspberry (46gf)
-        'gid://shopify/ProductVariant/41037258195053', // Blue Lagoon / Lemon (55gf)
-        'gid://shopify/ProductVariant/41037258326125', // Blue Lagoon / Silent Red Clear-Top (45gf)
-        'gid://shopify/ProductVariant/43556083597421', // Blue Lagoon / Blush (42gf)
-        'gid://shopify/ProductVariant/41037258588269', // Sakura Fizz / Mint (37gf)
-        'gid://shopify/ProductVariant/41037258719341', // Sakura Fizz / Raspberry (46gf)
-        'gid://shopify/ProductVariant/41037258850413', // Sakura Fizz / Lemon (55gf)
-        'gid://shopify/ProductVariant/41037258981485', // Sakura Fizz / Silent Red Clear-Top (45gf)
-        'gid://shopify/ProductVariant/43556083630189', // Sakura Fizz / Blush (42gf)
-        'gid://shopify/ProductVariant/44318570512493', // Obsidian Black / Raspberry (46gf)
-        'gid://shopify/ProductVariant/45054163386477', // Ionic White / Raspberry (46gf)
-        // NuPhy Halo65 V2
-        'gid://shopify/ProductVariant/41414603243629', // Ionic White / Mint (37gf)
-        'gid://shopify/ProductVariant/41414603407469', // Ionic White / Raspberry (46gf)
-        'gid://shopify/ProductVariant/41414603604077', // Ionic White / Lemon (55gf)
-        'gid://shopify/ProductVariant/41414603767917', // Ionic White / Blush (42gf)
-        'gid://shopify/ProductVariant/41414602588269', // Obsidian Black / Mint (37gf)
-        'gid://shopify/ProductVariant/41414602752109', // Obsidian Black / Raspberry (46gf)
-        'gid://shopify/ProductVariant/41414602915949', // Obsidian Black / Lemon (55gf)
-        'gid://shopify/ProductVariant/41414603079789', // Obsidian Black / Blush (42gf)
-        'gid://shopify/ProductVariant/41414603931757', // Mojito / Mint (37gf)
-        'gid://shopify/ProductVariant/41414604095597', // Mojito / Raspberry (46gf)
-        'gid://shopify/ProductVariant/41414604259437', // Mojito / Lemon (55gf)
-        'gid://shopify/ProductVariant/41414604423277', // Mojito / Blush (42gf)
-        'gid://shopify/ProductVariant/41414604587117', // Blue Lagoon / Mint (37gf)
-        'gid://shopify/ProductVariant/41414604750957', // Blue Lagoon / Raspberry (46gf)
-        'gid://shopify/ProductVariant/41414604914797', // Blue Lagoon / Lemon (55gf)
-        'gid://shopify/ProductVariant/41414605078637', // Blue Lagoon / Blush (42gf)
-        'gid://shopify/ProductVariant/41414605242477', // Sakura Fizz / Mint (37gf)
-        'gid://shopify/ProductVariant/41414605406317', // Sakura Fizz / Raspberry (46gf)
-        'gid://shopify/ProductVariant/41414605570157', // Sakura Fizz / Lemon (55gf)
-        'gid://shopify/ProductVariant/41414605766765', // Sakura Fizz / Blush (42gf)
-      ]
-    ),
-    giftVariantIds: new Set([
-        'gid://shopify/ProductVariant/45048753029229',
-    ]),
-  },
+  // {
+  //   id: "bogo-QMK-2026-0708",
+  //   triggerVariantIds: new Set([
+  //       // NuPhy Halo96 V2
+  //       'gid://shopify/ProductVariant/43556102996077', // Ionic White / Blush (42gf)
+  //       'gid://shopify/ProductVariant/44425538666605', // Ionic White / Lemon (55gf)
+  //       'gid://shopify/ProductVariant/43556103028845', // Obsidian Black / Blush (42gf)
+  //       'gid://shopify/ProductVariant/45054140022893', // Obsidian Black / Lemon (55gf)
+  //       'gid://shopify/ProductVariant/45054139859053', // Obsidian Black / Mint (37gf)
+  //       'gid://shopify/ProductVariant/45054137401453', // Obsidian Black / Raspberry (46gf)
+  //       'gid://shopify/ProductVariant/43556103061613', // Mojito / Blush (42gf)
+  //       'gid://shopify/ProductVariant/41305839337581', // Mojito / Lemon (55gf)
+  //       'gid://shopify/ProductVariant/41305838977133', // Mojito / Mint (37gf)
+  //       'gid://shopify/ProductVariant/41305839140973', // Mojito / Raspberry (46gf)
+  //       'gid://shopify/ProductVariant/41305839501421', // Mojito / Silent Red Clear-Top (45gf)
+  //       'gid://shopify/ProductVariant/43556103094381', // Blue Lagoon / Blush (42gf)
+  //       'gid://shopify/ProductVariant/41305840025709', // Blue Lagoon / Lemon (55gf)
+  //       'gid://shopify/ProductVariant/41305839665261', // Blue Lagoon / Mint (37gf)
+  //       'gid://shopify/ProductVariant/41305839861869', // Blue Lagoon / Raspberry (46gf)
+  //       'gid://shopify/ProductVariant/41305840189549', // Blue Lagoon / Silent Red Clear-Top (45gf)
+  //       'gid://shopify/ProductVariant/43556103127149', // Sakura Fizz / Blush (42gf)
+  //       'gid://shopify/ProductVariant/41305840713837', // Sakura Fizz / Lemon (55gf)
+  //       'gid://shopify/ProductVariant/41305840353389', // Sakura Fizz / Mint (37gf)
+  //       'gid://shopify/ProductVariant/41305840517229', // Sakura Fizz / Raspberry (46gf)
+  //       // NuPhy Halo75 V2
+  //       'gid://shopify/ProductVariant/43556083499117', // Ionic White / Blush (42gf)
+  //       'gid://shopify/ProductVariant/41037253804141', // Obsidian Black / Mint (37gf)
+  //       'gid://shopify/ProductVariant/45054166040685', // Ionic White / Mint (37gf)
+  //       'gid://shopify/ProductVariant/41037254066285', // Obsidian Black / Lemon (55gf)
+  //       'gid://shopify/ProductVariant/45054167580781', // Ionic White / Lemon (55gf)
+  //       'gid://shopify/ProductVariant/43556083531885', // Obsidian Black / Blush (42gf)
+  //       'gid://shopify/ProductVariant/41037257277549', // Mojito / Mint (37gf)
+  //       'gid://shopify/ProductVariant/41037257408621', // Mojito / Raspberry (46gf)
+  //       'gid://shopify/ProductVariant/41037257539693', // Mojito / Lemon (55gf)
+  //       'gid://shopify/ProductVariant/43556083564653', // Mojito / Blush (42gf)
+  //       'gid://shopify/ProductVariant/41037257932909', // Blue Lagoon / Mint (37gf)
+  //       'gid://shopify/ProductVariant/41037258063981', // Blue Lagoon / Raspberry (46gf)
+  //       'gid://shopify/ProductVariant/41037258195053', // Blue Lagoon / Lemon (55gf)
+  //       'gid://shopify/ProductVariant/41037258326125', // Blue Lagoon / Silent Red Clear-Top (45gf)
+  //       'gid://shopify/ProductVariant/43556083597421', // Blue Lagoon / Blush (42gf)
+  //       'gid://shopify/ProductVariant/41037258588269', // Sakura Fizz / Mint (37gf)
+  //       'gid://shopify/ProductVariant/41037258719341', // Sakura Fizz / Raspberry (46gf)
+  //       'gid://shopify/ProductVariant/41037258850413', // Sakura Fizz / Lemon (55gf)
+  //       'gid://shopify/ProductVariant/41037258981485', // Sakura Fizz / Silent Red Clear-Top (45gf)
+  //       'gid://shopify/ProductVariant/43556083630189', // Sakura Fizz / Blush (42gf)
+  //       'gid://shopify/ProductVariant/44318570512493', // Obsidian Black / Raspberry (46gf)
+  //       'gid://shopify/ProductVariant/45054163386477', // Ionic White / Raspberry (46gf)
+  //       // NuPhy Halo65 V2
+  //       'gid://shopify/ProductVariant/41414603243629', // Ionic White / Mint (37gf)
+  //       'gid://shopify/ProductVariant/41414603407469', // Ionic White / Raspberry (46gf)
+  //       'gid://shopify/ProductVariant/41414603604077', // Ionic White / Lemon (55gf)
+  //       'gid://shopify/ProductVariant/41414603767917', // Ionic White / Blush (42gf)
+  //       'gid://shopify/ProductVariant/41414602588269', // Obsidian Black / Mint (37gf)
+  //       'gid://shopify/ProductVariant/41414602752109', // Obsidian Black / Raspberry (46gf)
+  //       'gid://shopify/ProductVariant/41414602915949', // Obsidian Black / Lemon (55gf)
+  //       'gid://shopify/ProductVariant/41414603079789', // Obsidian Black / Blush (42gf)
+  //       'gid://shopify/ProductVariant/41414603931757', // Mojito / Mint (37gf)
+  //       'gid://shopify/ProductVariant/41414604095597', // Mojito / Raspberry (46gf)
+  //       'gid://shopify/ProductVariant/41414604259437', // Mojito / Lemon (55gf)
+  //       'gid://shopify/ProductVariant/41414604423277', // Mojito / Blush (42gf)
+  //       'gid://shopify/ProductVariant/41414604587117', // Blue Lagoon / Mint (37gf)
+  //       'gid://shopify/ProductVariant/41414604750957', // Blue Lagoon / Raspberry (46gf)
+  //       'gid://shopify/ProductVariant/41414604914797', // Blue Lagoon / Lemon (55gf)
+  //       'gid://shopify/ProductVariant/41414605078637', // Blue Lagoon / Blush (42gf)
+  //       'gid://shopify/ProductVariant/41414605242477', // Sakura Fizz / Mint (37gf)
+  //       'gid://shopify/ProductVariant/41414605406317', // Sakura Fizz / Raspberry (46gf)
+  //       'gid://shopify/ProductVariant/41414605570157', // Sakura Fizz / Lemon (55gf)
+  //       'gid://shopify/ProductVariant/41414605766765', // Sakura Fizz / Blush (42gf)
+  //     ]
+  //   ),
+  //   giftVariantIds: new Set([
+  //       'gid://shopify/ProductVariant/45048753029229',
+  //   ]),
+  // },
 
 
  //  皮套  NuFolio for Air75 HE
-  {
-    id: "bogo-Air75HE-2026-0731",
-    triggerVariantIds: new Set([
-      // NuPhy Air75 HE
-        'gid://shopify/ProductVariant/41842485461101', // Low-Profile Magnetic Jade / None / None
-        'gid://shopify/ProductVariant/41842485526637', // Low-Profile Magnetic Jade / None / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41842485493869', // Low-Profile Magnetic Jade / Acrylic Frosted / None
-        'gid://shopify/ProductVariant/41842485559405', // Low-Profile Magnetic Jade / Acrylic Frosted / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41842486902893', // Low-Profile Magnetic Jade / Acrylic Noir / None
-        'gid://shopify/ProductVariant/41842487033965', // Low-Profile Magnetic Jade / Acrylic Noir / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41842486935661', // Low-Profile Magnetic Jade / Beech / None
-        'gid://shopify/ProductVariant/41842487066733', // Low-Profile Magnetic Jade / Beech / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41842486968429', // Low-Profile Magnetic Jade / Black Oak / None
-        'gid://shopify/ProductVariant/41842487099501', // Low-Profile Magnetic Jade / Black Oak / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41842487001197', // Low-Profile Magnetic Jade / Walnut / None
-        'gid://shopify/ProductVariant/41842487132269', // Low-Profile Magnetic Jade / Walnut / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41842485592173', // Low-Profile Magnetic Jade Pro / None / None
-        'gid://shopify/ProductVariant/41842485657709', // Low-Profile Magnetic Jade Pro / None / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41842485624941', // Low-Profile Magnetic Jade Pro / Acrylic Frosted / None
-        'gid://shopify/ProductVariant/41842485690477', // Low-Profile Magnetic Jade Pro / Acrylic Frosted / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41842487165037', // Low-Profile Magnetic Jade Pro / Acrylic Noir / None
-        'gid://shopify/ProductVariant/41842487296109', // Low-Profile Magnetic Jade Pro / Acrylic Noir / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41842487197805', // Low-Profile Magnetic Jade Pro / Beech / None
-        'gid://shopify/ProductVariant/41842487328877', // Low-Profile Magnetic Jade Pro / Beech / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41842487230573', // Low-Profile Magnetic Jade Pro / Black Oak / None
-        'gid://shopify/ProductVariant/41842487361645', // Low-Profile Magnetic Jade Pro / Black Oak / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41842487263341', // Low-Profile Magnetic Jade Pro / Walnut / None
-        'gid://shopify/ProductVariant/41842487394413', // Low-Profile Magnetic Jade Pro / Walnut / Canopus Shine-through nSA
-      ]
-    ),
-    giftVariantIds: new Set([
-       'gid://shopify/ProductVariant/42015108137069',
-    ]),
-  },
+  // {
+  //   id: "bogo-Air75HE-2026-0731",
+  //   triggerVariantIds: new Set([
+  //     // NuPhy Air75 HE
+  //       'gid://shopify/ProductVariant/41842485461101', // Low-Profile Magnetic Jade / None / None
+  //       'gid://shopify/ProductVariant/41842485526637', // Low-Profile Magnetic Jade / None / Canopus Shine-through nSA
+  //       'gid://shopify/ProductVariant/41842485493869', // Low-Profile Magnetic Jade / Acrylic Frosted / None
+  //       'gid://shopify/ProductVariant/41842485559405', // Low-Profile Magnetic Jade / Acrylic Frosted / Canopus Shine-through nSA
+  //       'gid://shopify/ProductVariant/41842486902893', // Low-Profile Magnetic Jade / Acrylic Noir / None
+  //       'gid://shopify/ProductVariant/41842487033965', // Low-Profile Magnetic Jade / Acrylic Noir / Canopus Shine-through nSA
+  //       'gid://shopify/ProductVariant/41842486935661', // Low-Profile Magnetic Jade / Beech / None
+  //       'gid://shopify/ProductVariant/41842487066733', // Low-Profile Magnetic Jade / Beech / Canopus Shine-through nSA
+  //       'gid://shopify/ProductVariant/41842486968429', // Low-Profile Magnetic Jade / Black Oak / None
+  //       'gid://shopify/ProductVariant/41842487099501', // Low-Profile Magnetic Jade / Black Oak / Canopus Shine-through nSA
+  //       'gid://shopify/ProductVariant/41842487001197', // Low-Profile Magnetic Jade / Walnut / None
+  //       'gid://shopify/ProductVariant/41842487132269', // Low-Profile Magnetic Jade / Walnut / Canopus Shine-through nSA
+  //       'gid://shopify/ProductVariant/41842485592173', // Low-Profile Magnetic Jade Pro / None / None
+  //       'gid://shopify/ProductVariant/41842485657709', // Low-Profile Magnetic Jade Pro / None / Canopus Shine-through nSA
+  //       'gid://shopify/ProductVariant/41842485624941', // Low-Profile Magnetic Jade Pro / Acrylic Frosted / None
+  //       'gid://shopify/ProductVariant/41842485690477', // Low-Profile Magnetic Jade Pro / Acrylic Frosted / Canopus Shine-through nSA
+  //       'gid://shopify/ProductVariant/41842487165037', // Low-Profile Magnetic Jade Pro / Acrylic Noir / None
+  //       'gid://shopify/ProductVariant/41842487296109', // Low-Profile Magnetic Jade Pro / Acrylic Noir / Canopus Shine-through nSA
+  //       'gid://shopify/ProductVariant/41842487197805', // Low-Profile Magnetic Jade Pro / Beech / None
+  //       'gid://shopify/ProductVariant/41842487328877', // Low-Profile Magnetic Jade Pro / Beech / Canopus Shine-through nSA
+  //       'gid://shopify/ProductVariant/41842487230573', // Low-Profile Magnetic Jade Pro / Black Oak / None
+  //       'gid://shopify/ProductVariant/41842487361645', // Low-Profile Magnetic Jade Pro / Black Oak / Canopus Shine-through nSA
+  //       'gid://shopify/ProductVariant/41842487263341', // Low-Profile Magnetic Jade Pro / Walnut / None
+  //       'gid://shopify/ProductVariant/41842487394413', // Low-Profile Magnetic Jade Pro / Walnut / Canopus Shine-through nSA
+  //     ]
+  //   ),
+  //   giftVariantIds: new Set([
+  //      'gid://shopify/ProductVariant/42015108137069',
+  //   ]),
+  // },
 
   //  皮套  NuFolio for Air60 HE
-  {
-    id: "bogo-Air60HE-2026-0731",
-    triggerVariantIds: new Set([
-      // NuPhy Air60 HE
-        'gid://shopify/ProductVariant/41724980822125', // Low-Profile Magnetic Jade / None / None
-        'gid://shopify/ProductVariant/41724992585837', // Low-Profile Magnetic Jade / None / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41724980854893', // Low-Profile Magnetic Jade / Acrylic Frosted / None
-        'gid://shopify/ProductVariant/41724992651373', // Low-Profile Magnetic Jade / Acrylic Frosted / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41795205890157', // Low-Profile Magnetic Jade Pro / None / None
-        'gid://shopify/ProductVariant/41795205955693', // Low-Profile Magnetic Jade Pro / None / Canopus Shine-through nSA
-        'gid://shopify/ProductVariant/41795205922925', // Low-Profile Magnetic Jade Pro / Acrylic Frosted / None
-        'gid://shopify/ProductVariant/41795205988461', // Low-Profile Magnetic Jade Pro / Acrylic Frosted / Canopus Shine-through nSA
-      ]
-    ),
-    giftVariantIds: new Set([
-      'gid://shopify/ProductVariant/42015104893037',
-    ]),
-  },
+  // {
+  //   id: "bogo-Air60HE-2026-0731",
+  //   triggerVariantIds: new Set([
+  //     // NuPhy Air60 HE
+  //       'gid://shopify/ProductVariant/41724980822125', // Low-Profile Magnetic Jade / None / None
+  //       'gid://shopify/ProductVariant/41724992585837', // Low-Profile Magnetic Jade / None / Canopus Shine-through nSA
+  //       'gid://shopify/ProductVariant/41724980854893', // Low-Profile Magnetic Jade / Acrylic Frosted / None
+  //       'gid://shopify/ProductVariant/41724992651373', // Low-Profile Magnetic Jade / Acrylic Frosted / Canopus Shine-through nSA
+  //       'gid://shopify/ProductVariant/41795205890157', // Low-Profile Magnetic Jade Pro / None / None
+  //       'gid://shopify/ProductVariant/41795205955693', // Low-Profile Magnetic Jade Pro / None / Canopus Shine-through nSA
+  //       'gid://shopify/ProductVariant/41795205922925', // Low-Profile Magnetic Jade Pro / Acrylic Frosted / None
+  //       'gid://shopify/ProductVariant/41795205988461', // Low-Profile Magnetic Jade Pro / Acrylic Frosted / Canopus Shine-through nSA
+  //     ]
+  //   ),
+  //   giftVariantIds: new Set([
+  //     'gid://shopify/ProductVariant/42015104893037',
+  //   ]),
+  // },
 ];
 
 const CAMPAIGN_BY_ID = new Map(CAMPAIGNS.map((c) => [c.id, c]));
