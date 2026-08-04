@@ -245,6 +245,39 @@ const CAMPAIGNS = [
       'gid://shopify/ProductVariant/42015104893037',
     ]),
   },
+
+
+  //  键帽  Shine-through
+  {
+    id: "bogo-Air60V2-2026-0804",
+    triggerVariantIds: new Set([
+        // NuPhy Air60 V2
+        'gid://shopify/ProductVariant/40715867750509', // Ionic White / Red 2.0
+        'gid://shopify/ProductVariant/40715867848813', // Ionic White / Brown 2.0
+        'gid://shopify/ProductVariant/40715867947117', // Ionic White / Blue 2.0
+        'gid://shopify/ProductVariant/40715868045421', // Ionic White / Aloe (37gf)
+        'gid://shopify/ProductVariant/40715868143725', // Ionic White / Cowberry (45gf)
+        'gid://shopify/ProductVariant/45053840785517', // Basalt Black / Cowberry (45gf)
+        'gid://shopify/ProductVariant/40715868242029', // Ionic White / Wisteria (55gf)
+        'gid://shopify/ProductVariant/40715868340333', // Ionic White / Moss (60gf)
+        'gid://shopify/ProductVariant/40715868536941', // Basalt Black / Brown 2.0
+        'gid://shopify/ProductVariant/40715868635245', // Basalt Black / Blue 2.0
+        'gid://shopify/ProductVariant/40715868733549', // Basalt Black / Aloe (37gf)
+        'gid://shopify/ProductVariant/40715868930157', // Basalt Black / Wisteria (55gf)
+        'gid://shopify/ProductVariant/40715869028461', // Basalt Black / Moss (60gf)
+        'gid://shopify/ProductVariant/40715869126765', // Lunar Gray / Red 2.0
+        'gid://shopify/ProductVariant/40715869225069', // Lunar Gray / Brown 2.0
+        'gid://shopify/ProductVariant/40715869323373', // Lunar Gray / Blue 2.0
+        'gid://shopify/ProductVariant/40715869421677', // Lunar Gray / Aloe (37gf)
+        'gid://shopify/ProductVariant/40715869519981', // Lunar Gray / Cowberry (45gf)
+        'gid://shopify/ProductVariant/40715869618285', // Lunar Gray / Wisteria (55gf)
+        'gid://shopify/ProductVariant/40715869716589', // Lunar Gray / Moss (60gf)
+      ]
+    ),
+    giftVariantIds: new Set([
+     'gid://shopify/ProductVariant/40931570679917',
+    ]),
+  },
 ];
 
 const CAMPAIGN_BY_ID = new Map(CAMPAIGNS.map((c) => [c.id, c]));
