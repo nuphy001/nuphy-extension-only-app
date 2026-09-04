@@ -247,35 +247,81 @@ const CAMPAIGNS = [
   },
 
 
-  //  键帽  Shine-through
+  //  Node矮轴赠送11颗个性键帽
   {
-    id: "bogo-Air60V2-2026-0804",
+    id: "bogo-NodeLow-2026-0904",
     triggerVariantIds: new Set([
-        // NuPhy Air60 V2
-        'gid://shopify/ProductVariant/40715867750509', // Ionic White / Red 2.0
-        'gid://shopify/ProductVariant/40715867848813', // Ionic White / Brown 2.0
-        'gid://shopify/ProductVariant/40715867947117', // Ionic White / Blue 2.0
-        'gid://shopify/ProductVariant/40715868045421', // Ionic White / Aloe (37gf)
-        'gid://shopify/ProductVariant/40715868143725', // Ionic White / Cowberry (45gf)
-        'gid://shopify/ProductVariant/45053840785517', // Basalt Black / Cowberry (45gf)
-        'gid://shopify/ProductVariant/40715868242029', // Ionic White / Wisteria (55gf)
-        'gid://shopify/ProductVariant/40715868340333', // Ionic White / Moss (60gf)
-        'gid://shopify/ProductVariant/40715868536941', // Basalt Black / Brown 2.0
-        'gid://shopify/ProductVariant/40715868635245', // Basalt Black / Blue 2.0
-        'gid://shopify/ProductVariant/40715868733549', // Basalt Black / Aloe (37gf)
-        'gid://shopify/ProductVariant/40715868930157', // Basalt Black / Wisteria (55gf)
-        'gid://shopify/ProductVariant/40715869028461', // Basalt Black / Moss (60gf)
-        'gid://shopify/ProductVariant/40715869126765', // Lunar Gray / Red 2.0
-        'gid://shopify/ProductVariant/40715869225069', // Lunar Gray / Brown 2.0
-        'gid://shopify/ProductVariant/40715869323373', // Lunar Gray / Blue 2.0
-        'gid://shopify/ProductVariant/40715869421677', // Lunar Gray / Aloe (37gf)
-        'gid://shopify/ProductVariant/40715869519981', // Lunar Gray / Cowberry (45gf)
-        'gid://shopify/ProductVariant/40715869618285', // Lunar Gray / Wisteria (55gf)
-        'gid://shopify/ProductVariant/40715869716589', // Lunar Gray / Moss (60gf)
+        // NuPhy Node Series Low-profile
+        'gid://shopify/ProductVariant/43791048835181', // 75-ANSI-US English / Lunar White / Red nano
+        'gid://shopify/ProductVariant/43791048867949', // 75-ANSI-US English / Lunar White / Brown nano
+        'gid://shopify/ProductVariant/43791048900717', // 75-ANSI-US English / Lunar White / Blush nano
+        'gid://shopify/ProductVariant/43791048933485', // 75-ANSI-US English / Ink Gray / Red nano
+        'gid://shopify/ProductVariant/43791048966253', // 75-ANSI-US English / Ink Gray / Brown nano
+        'gid://shopify/ProductVariant/43791048999021', // 75-ANSI-US English / Ink Gray / Blush nano
+        'gid://shopify/ProductVariant/43791049031789', // 75-ANSI-US English / Light Pink / Red nano
+        'gid://shopify/ProductVariant/43791049064557', // 75-ANSI-US English / Light Pink / Brown nano
+        'gid://shopify/ProductVariant/43791049097325', // 75-ANSI-US English / Light Pink / Blush nano
+        'gid://shopify/ProductVariant/43797388820589', // 100-ANSI-US English / Lunar White / Red nano
+        'gid://shopify/ProductVariant/43797388853357', // 100-ANSI-US English / Lunar White / Brown nano
+        'gid://shopify/ProductVariant/43797388886125', // 100-ANSI-US English / Lunar White / Blush nano
+        'gid://shopify/ProductVariant/43797388918893', // 100-ANSI-US English / Ink Gray / Red nano
+        'gid://shopify/ProductVariant/43797388951661', // 100-ANSI-US English / Ink Gray / Brown nano
+        'gid://shopify/ProductVariant/43797388984429', // 100-ANSI-US English / Ink Gray / Blush nano
+        'gid://shopify/ProductVariant/43797389017197', // 100-ANSI-US English / Light Pink / Red nano
+        'gid://shopify/ProductVariant/43797389049965', // 100-ANSI-US English / Light Pink / Brown nano
+        'gid://shopify/ProductVariant/43797389082733', // 100-ANSI-US English / Light Pink / Blush nano
+        'gid://shopify/ProductVariant/45135049556077', // 75-ISO-German / Lunar White / Red nano
+        'gid://shopify/ProductVariant/45135049588845', // 75-ISO-German / Lunar White / Brown nano
+        'gid://shopify/ProductVariant/45135049621613', // 75-ISO-German / Lunar White / Blush nano
+        'gid://shopify/ProductVariant/45135049654381', // 75-ISO-German / Ink Gray / Red nano
+        'gid://shopify/ProductVariant/45135049687149', // 75-ISO-German / Ink Gray / Brown nano
+        'gid://shopify/ProductVariant/45135049719917', // 75-ISO-German / Ink Gray / Blush nano
+        'gid://shopify/ProductVariant/45135050342509', // 100-ISO-German / Lunar White / Red nano
+        'gid://shopify/ProductVariant/45135050375277', // 100-ISO-German / Lunar White / Brown nano
+        'gid://shopify/ProductVariant/45135050408045', // 100-ISO-German / Lunar White / Blush nano
+        'gid://shopify/ProductVariant/45135050440813', // 100-ISO-German / Ink Gray / Red nano
+        'gid://shopify/ProductVariant/45135050473581', // 100-ISO-German / Ink Gray / Brown nano
+        'gid://shopify/ProductVariant/45135050506349', // 100-ISO-German / Ink Gray / Blush nano
+        'gid://shopify/ProductVariant/45135049359469', // 75-ISO-British / Lunar White / Red nano
+        'gid://shopify/ProductVariant/45135049392237', // 75-ISO-British / Lunar White / Brown nano
+        'gid://shopify/ProductVariant/45135049425005', // 75-ISO-British / Lunar White / Blush nano
+        'gid://shopify/ProductVariant/45135049457773', // 75-ISO-British / Ink Gray / Red nano
+        'gid://shopify/ProductVariant/45135049490541', // 75-ISO-British / Ink Gray / Brown nano
+        'gid://shopify/ProductVariant/45135049523309', // 75-ISO-British / Ink Gray / Blush nano
+        'gid://shopify/ProductVariant/45135050145901', // 100-ISO-British / Lunar White / Red nano
+        'gid://shopify/ProductVariant/45135050178669', // 100-ISO-British / Lunar White / Brown nano
+        'gid://shopify/ProductVariant/45135050211437', // 100-ISO-British / Lunar White / Blush nano
+        'gid://shopify/ProductVariant/45135050244205', // 100-ISO-British / Ink Gray / Red nano
+        'gid://shopify/ProductVariant/45135050276973', // 100-ISO-British / Ink Gray / Brown nano
+        'gid://shopify/ProductVariant/45135050309741', // 100-ISO-British / Ink Gray / Blush nano
+        'gid://shopify/ProductVariant/45135049752685', // 75-lSO-French / Lunar White / Red nano
+        'gid://shopify/ProductVariant/45135049785453', // 75-lSO-French / Lunar White / Brown nano
+        'gid://shopify/ProductVariant/45135049818221', // 75-lSO-French / Lunar White / Blush nano
+        'gid://shopify/ProductVariant/45135049850989', // 75-lSO-French / Ink Gray / Red nano
+        'gid://shopify/ProductVariant/45135049883757', // 75-lSO-French / Ink Gray / Brown nano
+        'gid://shopify/ProductVariant/45135049916525', // 75-lSO-French / Ink Gray / Blush nano
+        'gid://shopify/ProductVariant/45135050539117', // 100-lSO-French / Lunar White / Red nano
+        'gid://shopify/ProductVariant/45135050571885', // 100-lSO-French / Lunar White / Brown nano
+        'gid://shopify/ProductVariant/45135050604653', // 100-lSO-French / Lunar White / Blush nano
+        'gid://shopify/ProductVariant/45135050637421', // 100-lSO-French / Ink Gray / Red nano
+        'gid://shopify/ProductVariant/45135050670189', // 100-lSO-French / Ink Gray / Brown nano
+        'gid://shopify/ProductVariant/45135050702957', // 100-lSO-French / Ink Gray / Blush nano
+        'gid://shopify/ProductVariant/45135049949293', // 75-JIS-Japanese / Lunar White / Red nano
+        'gid://shopify/ProductVariant/45135049982061', // 75-JIS-Japanese / Lunar White / Brown nano
+        'gid://shopify/ProductVariant/45135050014829', // 75-JIS-Japanese / Lunar White / Blush nano
+        'gid://shopify/ProductVariant/45135050047597', // 75-JIS-Japanese / Ink Gray / Red nano
+        'gid://shopify/ProductVariant/45135050080365', // 75-JIS-Japanese / Ink Gray / Brown nano
+        'gid://shopify/ProductVariant/45135050113133', // 75-JIS-Japanese / Ink Gray / Blush nano
+        'gid://shopify/ProductVariant/45135050735725', // 100-JIS-Japanese / Lunar White / Red nano
+        'gid://shopify/ProductVariant/45135050768493', // 100-JIS-Japanese / Lunar White / Brown nano
+        'gid://shopify/ProductVariant/45135050801261', // 100-JIS-Japanese / Lunar White / Blush nano
+        'gid://shopify/ProductVariant/45135050834029', // 100-JIS-Japanese / Ink Gray / Red nano
+        'gid://shopify/ProductVariant/45135050866797', // 100-JIS-Japanese / Ink Gray / Brown nano
+        'gid://shopify/ProductVariant/45135050899565', // 100-JIS-Japanese / Ink Gray / Blush nano
       ]
     ),
     giftVariantIds: new Set([
-     'gid://shopify/ProductVariant/40931570679917',
+     'gid://shopify/ProductVariant/45773792182381',
     ]),
   },
 ];
