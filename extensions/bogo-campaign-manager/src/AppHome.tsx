@@ -77,7 +77,7 @@ function App() {
       if (config.campaigns.some(campaign => !campaign.name?.trim())) throw new Error('请填写每个活动的名称');
       const next = await saveSettings(settings, config);
       setSettings(next); setSaved(config);
-      setNotice('已保存。商城下一次购物车操作将读取新配置，折扣仍由现有 BOGO 自动折扣执行。');
+      setNotice('已保存。商城下一次购物车操作将读取新配置。');
     } catch (cause) {
       setError(errorMessage(cause));
     } finally { setBusy(false); }
