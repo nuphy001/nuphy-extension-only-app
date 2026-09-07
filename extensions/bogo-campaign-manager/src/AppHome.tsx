@@ -197,6 +197,7 @@ function ProductSelector({ initial, known, onCancel, onSelect }: {
         <s-button variant="primary" disabled={loading} onClick={() => { setRequest({ search, after: null }); setOnlySelected(false); }}>开始搜索</s-button>
         <s-button disabled={loading} onClick={() => setOnlySelected(value => !value)}>{onlySelected ? '回到搜索结果' : `只看已选（${ids.length}）`}</s-button>
         <s-button disabled={loading || onlySelected || !!error} onClick={() => setIds(previous => [...new Set([...previous, ...shown])])}>全选本页</s-button>
+        <s-button tone="critical" disabled={loading || ids.length === 0} onClick={() => setIds([])}>清空当前选择</s-button>
       </s-stack>
       {error && <s-banner tone="critical">{error}</s-banner>}
       {loading ? <s-spinner accessibilityLabel="正在搜索商品" /> : shown.map(id => {
@@ -216,6 +217,7 @@ function ProductSelector({ initial, known, onCancel, onSelect }: {
       </s-stack>}
       <s-stack direction="inline" gap="base">
         <s-button variant="primary" disabled={loading} onClick={() => onSelect(ids, details)}>确认选择（{ids.length} 个）</s-button>
+        <s-button disabled={loading || ids.length === 0} onClick={() => setIds([])}>取消全部选择</s-button>
         <s-button onClick={onCancel}>不保存这次选择</s-button>
       </s-stack>
     </s-stack>
