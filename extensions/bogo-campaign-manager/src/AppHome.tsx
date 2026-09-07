@@ -1,12 +1,18 @@
 import '@shopify/ui-extensions/preact';
 import { render } from 'preact';
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { configBytes, type StoredCampaign, type StoredConfig } from '../../nuphy-free-gift-discount/src/configuration';
 import { initialConfig, loadSettings, loadVariants, saveSettings, searchVariants, type Settings, type Variant } from './api';
 
 export default async () => { render(<App />, document.body); };
 const empty: StoredConfig = { version: 1, campaigns: [] };
-const errorMessage = (error: unknown) => error instanceof Error ? error.message : '操作失败，请重试';
+const errorMessage = (error: unknown) => {
+  const message = error instanceof Error ? error.message : '';
+  if (message.includes('INVALID_COMPARE_DIGEST') || message.includes('其他人修改')) return '这条活动刚刚被别人改过了。请先重新加载，再重新保存。';
+  if (message.includes('配置不可用') || message.includes('Promotion configuration')) return '活动配置暂时读不到，请刷新页面后再试。';
+  if (message.includes('超过容量')) return '活动太多或商品太多了，请删掉不用的活动后再保存。';
+  return message || '没有保存成功，请稍后再试。';
+};
 const variantIds = (config: StoredConfig) => config.campaigns.flatMap(campaign => [
   ...campaign.triggerVariantIds, ...campaign.gifts.map(gift => gift.variantId),
 ]);
@@ -23,8 +29,14 @@ function App() {
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [removeId, setRemoveId] = useState<string | null>(null);
   const [pickerRole, setPickerRole] = useState<'trigger' | 'gift' | null>(null);
+  const pickerModal = useRef<HTMLElementTagNameMap['s-modal'] | null>(null);
   const dirty = JSON.stringify(config) !== JSON.stringify(saved);
   const selected = config.campaigns.find(campaign => campaign.id === selectedId);
+
+  useEffect(() => {
+    if (pickerRole) pickerModal.current?.showOverlay?.();
+    else pickerModal.current?.hideOverlay?.();
+  }, [pickerRole]);
 
   useEffect(() => {
     let cancelled = false;
@@ -88,12 +100,12 @@ function App() {
           <s-section heading="活动管理">
             <s-stack gap="base">
               <s-paragraph>当前店铺：{settings.shop.myshopifyDomain}</s-paragraph>
-              {!settings.shop.mode && <s-banner tone="info">尚未切换到页面管理。下方是该店铺现有活动的导入预览；点击“导入并启用页面管理”后生效。请先完成商城和 BOGO 折扣函数的首次版本更新。</s-banner>}
-              <s-paragraph>选择主商品和赠品，沿用当前赠送规则。赠品售罄时仍按现有购物车逻辑处理；请保持 Shopify 中的 BOGO 自动折扣启用。</s-paragraph>
+              {!settings.shop.mode && <s-banner tone="info">这是第一次使用页面管理。先检查下面的活动，确认无误后点击右上角“导入并启用页面管理”。之后新增活动只需要在这里操作，不用改代码。</s-banner>}
+              <s-paragraph>操作顺序很简单：新增活动 → 选择“买什么” → 选择“送什么” → 保存。这里保存的是活动规则，实际免单仍由 Shopify 的 BOGO 折扣负责。</s-paragraph>
               <s-stack direction="inline" gap="base">
-                <s-button disabled={busy} onClick={addCampaign}>新增活动</s-button>
-                <s-button disabled={busy || !dirty} onClick={() => { setConfig(saved); setSelectedId(null); setRemoveId(null); setError(''); }}>撤销未保存修改</s-button>
-                <s-text color="subdued">{dirty ? '有未保存修改' : '配置已加载'} · {configBytes(JSON.stringify(config))} / 10000 字节</s-text>
+                <s-button variant="primary" disabled={busy} onClick={addCampaign}>新增一个买赠活动</s-button>
+                <s-button disabled={busy || !dirty} onClick={() => { setConfig(saved); setSelectedId(null); setRemoveId(null); setError(''); }}>放弃未保存的修改</s-button>
+                <s-text color="subdued">{dirty ? '有修改还没保存' : '已保存'} · {configBytes(JSON.stringify(config))} / 10000 字节</s-text>
               </s-stack>
             </s-stack>
           </s-section>
@@ -109,39 +121,41 @@ function App() {
               </s-table-row>)}</s-table-body>
             </s-table>}
           </s-section>
-          {selected && <s-section heading="编辑活动">
+          {selected && <s-section heading="设置这个买赠活动">
             <s-stack gap="base">
-              <s-text-field label="活动名称" value={selected.name ?? selected.id} maxLength={100} disabled={busy} onInput={event => update(selected.id, { name: event.currentTarget.value })} />
-              <s-text color="subdued">活动 ID：{selected.id}</s-text>
-              <s-switch label="启用活动" checked={selected.enabled} disabled={busy} onChange={event => update(selected.id, { enabled: event.currentTarget.checked })} />
+              <s-text-field label="1. 给活动起个名字" value={selected.name ?? selected.id} maxLength={100} disabled={busy} onInput={event => update(selected.id, { name: event.currentTarget.value })} />
+              <s-text color="subdued">这个名字只给你自己看，不会显示给顾客。</s-text>
+              <s-switch label="启用这个活动" checked={selected.enabled} disabled={busy} onChange={event => update(selected.id, { enabled: event.currentTarget.checked })} />
               <s-switch label="显示 FREE GIFT 标签" checked={selected.showLabel ?? true} disabled={busy} onChange={event => update(selected.id, { showLabel: event.currentTarget.checked })} />
-              <s-paragraph>控制赠品商品图上的 FREE GIFT 标签显示，不影响赠送数量或折扣。</s-paragraph>
-              <s-select label="赠送数量规则" value={selected.triggerQuantity === undefined ? 'follow' : 'fixed'} disabled={busy} onChange={event => update(selected.id, { triggerQuantity: event.currentTarget.value === 'fixed' ? 1 : undefined })}>
-                <s-option value="follow">赠品数量随主商品数量 1:1 变化</s-option>
-                <s-option value="fixed">固定赠品数量</s-option>
+              <s-paragraph>关掉后只是不显示标签，赠品和折扣仍然照常生效。</s-paragraph>
+              <s-select label="赠送数量" value={selected.triggerQuantity === undefined ? 'follow' : 'fixed'} disabled={busy} onChange={event => update(selected.id, { triggerQuantity: event.currentTarget.value === 'fixed' ? 1 : undefined })}>
+                <s-option value="follow">买几个主商品，就送几个赠品</s-option>
+                <s-option value="fixed">无论买几个，只送固定数量</s-option>
               </s-select>
-              {selected.triggerQuantity !== undefined && <s-number-field label="每种赠品的固定数量" value={String(selected.triggerQuantity)} min={1} step={1} disabled={busy} onInput={event => update(selected.id, { triggerQuantity: Number(event.currentTarget.value) })} />}
-              <s-paragraph>固定数量控制购物车添加数量；结账免单额度继续按该活动主商品总量封顶，与当前折扣函数一致。</s-paragraph>
-              <s-button disabled={busy} onClick={() => setPickerRole('trigger')}>选择主商品及变体</s-button>
+              {selected.triggerQuantity !== undefined && <s-number-field label="固定送几个" value={String(selected.triggerQuantity)} min={1} step={1} disabled={busy} onInput={event => update(selected.id, { triggerQuantity: Number(event.currentTarget.value) })} />}
+              <s-paragraph>数量设置只影响购物车里加几个赠品，免单规则保持不变。</s-paragraph>
+              <s-button disabled={busy} onClick={() => setPickerRole('trigger')}>2. 选择买什么（主商品）</s-button>
               <VariantList ids={selected.triggerVariantIds} variants={variants} />
-              <s-button disabled={busy} onClick={() => setPickerRole('gift')}>选择赠品及变体</s-button>
+              <s-button disabled={busy} onClick={() => setPickerRole('gift')}>3. 选择送什么（赠品）</s-button>
               <VariantList ids={selected.gifts.map(gift => gift.variantId)} variants={variants} />
-              {pickerRole && <ProductSelector key={`${selected.id}-${pickerRole}`}
-                initial={pickerRole === 'trigger' ? selected.triggerVariantIds : selected.gifts.map(gift => gift.variantId)}
-                known={variants} onCancel={() => setPickerRole(null)}
-                onSelect={(ids, products) => {
-                  setVariants(previous => ({ ...previous, ...products }));
-                  update(selected.id, pickerRole === 'trigger' ? { triggerVariantIds: ids } : { gifts: ids.map(variantId => ({ variantId })) });
-                  setPickerRole(null);
-                }} />}
-              <s-paragraph>以上修改将在点击顶部“保存活动配置”后生效。</s-paragraph>
+              <s-modal ref={pickerModal} heading={pickerRole === 'trigger' ? '选择买什么' : '选择送什么'} size="large-100" accessibilityLabel="选择活动商品" onHide={() => setPickerRole(null)}>
+                {pickerRole && <ProductSelector key={`${selected.id}-${pickerRole}`}
+                  initial={pickerRole === 'trigger' ? selected.triggerVariantIds : selected.gifts.map(gift => gift.variantId)}
+                  known={variants} onCancel={() => setPickerRole(null)}
+                  onSelect={(ids, products) => {
+                    setVariants(previous => ({ ...previous, ...products }));
+                    update(selected.id, pickerRole === 'trigger' ? { triggerVariantIds: ids } : { gifts: ids.map(variantId => ({ variantId })) });
+                    setPickerRole(null);
+                  }} />}
+              </s-modal>
+              <s-paragraph>检查完上面内容后，点击页面右上角“保存活动配置”。不保存的话，修改不会生效。</s-paragraph>
               {removeId === selected.id ? <s-stack direction="inline" gap="base">
                 <s-button tone="critical" disabled={busy} onClick={() => {
                   setConfig(previous => ({ ...previous, campaigns: previous.campaigns.filter(campaign => campaign.id !== selected.id) }));
                   setSelectedId(null); setRemoveId(null);
-                }}>确认移除此活动，保存后生效</s-button>
-                <s-button onClick={() => setRemoveId(null)}>取消移除</s-button>
-              </s-stack> : <s-button tone="critical" disabled={busy} onClick={() => setRemoveId(selected.id)}>移除活动</s-button>}
+                }}>确定删除这个活动（保存后生效）</s-button>
+                <s-button onClick={() => setRemoveId(null)}>先不删除</s-button>
+              </s-stack> : <s-button tone="critical" disabled={busy} onClick={() => setRemoveId(selected.id)}>删除这个活动</s-button>}
             </s-stack>
           </s-section>}
         </>}
@@ -175,12 +189,13 @@ function ProductSelector({ initial, known, onCancel, onSelect }: {
     return () => { cancelled = true; };
   }, [request]);
   const shown = onlySelected ? ids : products.map(item => item.id.split('/').pop()!);
-  return <s-section heading="选择商品变体">
+  return <s-section heading={initial.length ? '选择商品（已选商品会保留）' : '选择商品'}>
     <s-stack gap="base">
+      <s-paragraph>搜索商品名称或 SKU，勾选需要的商品变体，再点击底部“确认选择”。</s-paragraph>
       <s-search-field label="搜索商品或 SKU" value={search} onInput={event => setSearch(event.currentTarget.value)} />
       <s-stack direction="inline" gap="base">
-        <s-button disabled={loading} onClick={() => { setRequest({ search, after: null }); setOnlySelected(false); }}>搜索</s-button>
-        <s-button disabled={loading} onClick={() => setOnlySelected(value => !value)}>{onlySelected ? '查看搜索结果' : `查看已选（${ids.length}）`}</s-button>
+        <s-button variant="primary" disabled={loading} onClick={() => { setRequest({ search, after: null }); setOnlySelected(false); }}>开始搜索</s-button>
+        <s-button disabled={loading} onClick={() => setOnlySelected(value => !value)}>{onlySelected ? '回到搜索结果' : `只看已选（${ids.length}）`}</s-button>
         <s-button disabled={loading || onlySelected || !!error} onClick={() => setIds(previous => [...new Set([...previous, ...shown])])}>全选本页</s-button>
       </s-stack>
       {error && <s-banner tone="critical">{error}</s-banner>}
@@ -194,14 +209,14 @@ function ProductSelector({ initial, known, onCancel, onSelect }: {
           }} />
         </s-stack>;
       })}
-      {!loading && !shown.length && <s-paragraph>没有匹配的商品变体。</s-paragraph>}
+      {!loading && !shown.length && <s-paragraph>{onlySelected ? '还没有选商品。' : '没有找到商品，请换个关键词再搜。'}</s-paragraph>}
       {!onlySelected && <s-stack direction="inline" gap="base">
         <s-button disabled={loading || !request.after} onClick={() => setRequest({ search: request.search, after: null })}>回到第一页</s-button>
         <s-button disabled={loading || !!error || !page.hasNextPage} onClick={() => setRequest({ search: request.search, after: page.endCursor })}>下一页</s-button>
       </s-stack>}
       <s-stack direction="inline" gap="base">
-        <s-button variant="primary" disabled={loading} onClick={() => onSelect(ids, details)}>确认选择（{ids.length}）</s-button>
-        <s-button onClick={onCancel}>取消</s-button>
+        <s-button variant="primary" disabled={loading} onClick={() => onSelect(ids, details)}>确认选择（{ids.length} 个）</s-button>
+        <s-button onClick={onCancel}>不保存这次选择</s-button>
       </s-stack>
     </s-stack>
   </s-section>;
