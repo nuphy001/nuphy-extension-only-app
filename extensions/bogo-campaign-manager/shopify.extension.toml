@@ -1,0 +1,13 @@
+api_version = "2026-04"
+
+[[extensions]]
+# Change the merchant-facing name of the extension in locales/en.default.json
+name = "t:name"
+handle = "bogo-campaign-manager"
+type = "ui_extension"
+uid = "2d7c21b6-1c58-958c-6a7e-4ba9f64c1b765ddfa5af"
+
+# Only 1 target can be specified for each app-home extension
+[[extensions.targeting]]
+module = "./src/AppHome.tsx"
+target = "admin.app.home.render"

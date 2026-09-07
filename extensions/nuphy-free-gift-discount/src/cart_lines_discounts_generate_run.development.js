@@ -1,4 +1,5 @@
 // @ts-check
+import { configuredCampaigns } from "./configuration";
 
 // NuPhyX test-store implementation. Replace campaign Variant GIDs with NuPhyX GIDs here.
 
@@ -31,7 +32,7 @@
  *
  * ⚠ Keep CAMPAIGNS in sync with:
  *   nuphy-headless-shop/src/lib/promotion/config.ts
- * 改动 config.ts 的 campaign 列表 / 变体 id 时，本文件需同步更新并重新部署 Function。
+ * 以下常量只用于首次切换前兼容旧配置。页面管理启用后不再读取这些常量。
  */
 
 /**
@@ -85,13 +86,18 @@ const CAMPAIGNS = [
   },
 ];
 
-const CAMPAIGN_BY_ID = new Map(CAMPAIGNS.map((c) => [c.id, c]));
+
 
 /**
  * @param {RunInput} input
  * @returns {RunResult}
  */
 export function goboFreeGiftDiscountFunction(input) {
+  // 未切换店铺继续使用原白名单；切换后只读取页面保存的配置。
+  const campaigns = input.shop?.promotionMode
+    ? configuredCampaigns(input.shop.promotionMode.value, input.shop.promotionConfig?.jsonValue)
+    : CAMPAIGNS;
+  const CAMPAIGN_BY_ID = new Map(campaigns.map(c => [c.id, c]));
   const lines = input.cart.lines;
 
   // 单次遍历非赠品行：
@@ -107,7 +113,7 @@ export function goboFreeGiftDiscountFunction(input) {
     nonGiftVariantIds.add(variantId);
     const qty = line.quantity ?? 0;
     if (qty < 1) continue;
-    for (const campaign of CAMPAIGNS) {
+    for (const campaign of campaigns) {
       if (campaign.triggerVariantIds.has(variantId)) {
         remainingByCampaign.set(
           campaign.id,

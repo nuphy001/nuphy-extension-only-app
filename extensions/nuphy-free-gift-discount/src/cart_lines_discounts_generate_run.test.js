@@ -1,14 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { goboFreeGiftDiscountFunction } from './cart_lines_discounts_generate_run.production';
 
-/**
- * 测试常量（与 cart_lines_discounts_generate_run.js 内 CAMPAIGNS 同步）
- *
- * 当前线上共两条活动：
- *   1) 键帽 bogo-Summer-Keycaps-2026  —— Kick75 矮轴(Low) 在此触发
- *   2) 手托 bogo-Wrist-Rest-2026      —— Kick75 高轴(High) 在此触发
- * 业务规则：全站商品按规则归属——命中键帽规则送键帽，命中手托规则送手托。
- */
+/** 固定测试活动通过 Function 输入提供，避免测试绑定持续变动的线上白名单。 */
 
 // ─── 键帽 campaign（Summer Keycaps） ──────────────────────────────────────────
 const CAMPAIGN_KEYCAPS = 'bogo-Summer-Keycaps-2026';
@@ -57,7 +50,10 @@ function makeLine({
 }
 
 function makeInput(lines) {
-  return { cart: { lines } };
+  return { cart: { lines }, shop: { promotionMode: { value: 'managed' }, promotionConfig: { jsonValue: { version: 1, campaigns: [
+    { id: CAMPAIGN_KEYCAPS, enabled: true, triggerVariantIds: [TRIGGER_KEYCAPS_AIR, TRIGGER_KEYCAPS_KICK_LOW].map(id => id.split('/').pop()), gifts: [{ variantId: GIFT_KEYCAPS.split('/').pop() }] },
+    { id: CAMPAIGN_WRISTREST, enabled: true, triggerVariantIds: [TRIGGER_WRISTREST_HALO, TRIGGER_WRISTREST_KICK_HIGH].map(id => id.split('/').pop()), gifts: [{ variantId: GIFT_WRISTREST.split('/').pop() }] },
+  ] } } } };
 }
 
 /** 合法触发主品行（默认键帽活动 Air75 V3） */
@@ -265,5 +261,21 @@ describe('goboFreeGiftDiscountFunction — 跨活动混买（配额独立）', (
       { cartLine: { id: 'G_KC', quantity: 2 } },
       { cartLine: { id: 'G_WR', quantity: 1 } },
     ]);
+  });
+});
+
+describe('页面配置切换', () => {
+  it('停用页面活动后不再产生折扣', () => {
+    const input = makeInput([triggerLine(), giftLine()]);
+    input.shop.promotionConfig.jsonValue.campaigns[0].enabled = false;
+    expect(goboFreeGiftDiscountFunction(input)).toEqual({ operations: [] });
+  });
+  it('启用页面管理后配置缺失，不恢复旧白名单', () => {
+    const input = makeInput([
+      triggerLine('T', 'gid://shopify/ProductVariant/42579051315309'),
+      giftLine({ promoId: 'bogo-V3-Keycaps-2026-0803', variantId: 'gid://shopify/ProductVariant/45378325839981' }),
+    ]);
+    input.shop = { promotionMode: { value: 'managed' }, promotionConfig: null };
+    expect(goboFreeGiftDiscountFunction(input)).toEqual({ operations: [] });
   });
 });

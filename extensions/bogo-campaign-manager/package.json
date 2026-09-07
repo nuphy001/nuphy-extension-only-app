@@ -1,0 +1,17 @@
+{
+  "name": "bogo-campaign-manager",
+  "private": true,
+  "version": "1.0.0",
+  "license": "UNLICENSED",
+  "scripts": {
+    "check:types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@preact/signals": "^2.11.2",
+    "@shopify/ui-extensions": "2026.10.0-rc.9",
+    "preact": "^10.10.x"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}

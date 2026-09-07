@@ -3,7 +3,7 @@
 client_id = "1dfa5ac4c1e95115a158b547c4228540"
 name = "nuphy-extension-only-app"
 application_url = "https://shopify.dev/apps/default-app-home"
-embedded = false
+embedded = true
 
 [build]
 automatically_update_urls_on_dev = false
@@ -12,7 +12,7 @@ automatically_update_urls_on_dev = false
 api_version = "2026-01"
 
 [access_scopes]
-scopes = ""
+scopes = "read_products"
 
 [auth]
 redirect_urls = [ "https://shopify.dev/apps/default-app-home/api/auth" ]

@@ -11,6 +11,10 @@
 #   - _promo_main_variant  : 主品 variant id（防 risk 2：无主品也免赠品）
 #   - _promo_id            : 所属 campaign id（防跨 campaign 替换攻击）
 query CartLinesDiscountsGenerateRun {
+  shop {
+    promotionMode: metafield(namespace: "nuphy_bogo", key: "mode") { value }
+    promotionConfig: metafield(namespace: "nuphy_bogo", key: "campaigns") { jsonValue }
+  }
   cart {
     lines {
       id

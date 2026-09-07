@@ -100,3 +100,7 @@ Open the URL generated in your console. Once you grant permission to the app, yo
 - [App extensions](https://shopify.dev/docs/apps/build/app-extensions)
 - [Extension only apps](https://shopify.dev/docs/apps/build/app-extensions/build-extension-only-app)
 - [Shopify CLI](https://shopify.dev/docs/apps/tools/cli)
+
+## BOGO 活动管理
+
+原 app 已新增 Shopify 托管的买赠配置首页，见 [活动管理说明](extensions/bogo-campaign-manager/README.md)。首次切换前保留原有白名单；切换后从店铺配置读取活动，无需为新活动重新部署。

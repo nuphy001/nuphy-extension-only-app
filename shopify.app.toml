@@ -3,8 +3,8 @@
 client_id = "ea8902f04f9c9f1c5f6fd7ed25500b71"
 name = "nuphyX-extension-app"
 application_url = "https://shopify.dev/apps/default-app-home"
-# 如果是 true 那么就会无法配置那个 chekcout 配置，跳转走
-embedded = false
+# 在 Shopify 内打开 BOGO 活动管理首页
+embedded = true
 [build]
 automatically_update_urls_on_dev = true
 dev_store_url = "q1j8s1-yq.myshopify.com"
@@ -14,7 +14,7 @@ api_version = "2026-01"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = ""
+scopes = "read_products"
 
 [auth]
 redirect_urls = [ "https://shopify.dev/apps/default-app-home/api/auth" ]
