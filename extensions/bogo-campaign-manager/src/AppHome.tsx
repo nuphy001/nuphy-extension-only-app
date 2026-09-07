@@ -99,9 +99,9 @@ function App() {
         {settings && <>
           <s-section heading="活动管理">
             <s-stack gap="base">
-              <s-paragraph>当前店铺：{settings.shop.myshopifyDomain}</s-paragraph>
+              {/* <s-paragraph>当前店铺：{settings.shop.myshopifyDomain}</s-paragraph> */}
               {!settings.shop.mode && <s-banner tone="info">这是第一次使用页面管理。先检查下面的活动，确认无误后点击右上角“导入并启用页面管理”。之后新增活动只需要在这里操作，不用改代码。</s-banner>}
-              <s-paragraph>操作顺序很简单：新增活动 → 选择“买什么” → 选择“送什么” → 保存。这里保存的是活动规则，实际免单仍由 Shopify 的 BOGO 折扣负责。</s-paragraph>
+              <s-paragraph>操作顺序很简单：新增活动 → 选择“买什么” → 选择“送什么” → 保存。</s-paragraph>
               <s-stack direction="inline" gap="base">
                 <s-button variant="primary" disabled={busy} onClick={addCampaign}>新增一个买赠活动</s-button>
                 <s-button disabled={busy || !dirty} onClick={() => { setConfig(saved); setSelectedId(null); setRemoveId(null); setError(''); }}>放弃未保存的修改</s-button>
@@ -127,12 +127,12 @@ function App() {
               <s-text color="subdued">这个名字只给你自己看，不会显示给顾客。</s-text>
               <s-switch label="启用这个活动" checked={selected.enabled} disabled={busy} onChange={event => update(selected.id, { enabled: event.currentTarget.checked })} />
               <s-switch label="显示 FREE GIFT 标签" checked={selected.showLabel ?? true} disabled={busy} onChange={event => update(selected.id, { showLabel: event.currentTarget.checked })} />
-              <s-paragraph>关掉后只是不显示标签，赠品和折扣仍然照常生效。</s-paragraph>
+              <s-paragraph>这个开关只控制购物车赠品商品左上角的Free gift标签。关掉后只是不显示标签，赠品和折扣仍然照常生效。</s-paragraph>
               <s-select label="赠送数量" value={selected.triggerQuantity === undefined ? 'follow' : 'fixed'} disabled={busy} onChange={event => update(selected.id, { triggerQuantity: event.currentTarget.value === 'fixed' ? 1 : undefined })}>
                 <s-option value="follow">买几个主商品，就送几个赠品</s-option>
-                <s-option value="fixed">无论买几个，只送固定数量</s-option>
+                <s-option value="fixed">无论买几个主商品，只送固定数量赠品</s-option>
               </s-select>
-              {selected.triggerQuantity !== undefined && <s-number-field label="固定送几个" value={String(selected.triggerQuantity)} min={1} step={1} disabled={busy} onInput={event => update(selected.id, { triggerQuantity: Number(event.currentTarget.value) })} />}
+              {selected.triggerQuantity !== undefined && <s-number-field label="固定送几个赠品" value={String(selected.triggerQuantity)} min={1} step={1} disabled={busy} onInput={event => update(selected.id, { triggerQuantity: Number(event.currentTarget.value) })} />}
               <s-paragraph>数量设置只影响购物车里加几个赠品，免单规则保持不变。</s-paragraph>
               <s-button disabled={busy} onClick={() => setPickerRole('trigger')}>2. 选择买什么（主商品）</s-button>
               <VariantList ids={selected.triggerVariantIds} variants={variants} />
@@ -148,7 +148,7 @@ function App() {
                     setPickerRole(null);
                   }} />}
               </s-modal>
-              <s-paragraph>检查完上面内容后，点击页面右上角“保存活动配置”。不保存的话，修改不会生效。</s-paragraph>
+              <s-text type="strong">检查完上面内容后，点击页面右上角“保存活动配置”。不保存的话，修改不会生效。</s-text>
               {removeId === selected.id ? <s-stack direction="inline" gap="base">
                 <s-button tone="critical" disabled={busy} onClick={() => {
                   setConfig(previous => ({ ...previous, campaigns: previous.campaigns.filter(campaign => campaign.id !== selected.id) }));
@@ -191,7 +191,7 @@ function ProductSelector({ initial, known, onCancel, onSelect }: {
   const shown = onlySelected ? ids : products.map(item => item.id.split('/').pop()!);
   return <s-section heading={initial.length ? '选择商品（已选商品会保留）' : '选择商品'}>
     <s-stack gap="base">
-      <s-paragraph>搜索商品名称或 SKU，勾选需要的商品变体，再点击底部“确认选择”。</s-paragraph>
+      <s-paragraph>搜索商品名称或 SKU，勾选需要的商品变体，再点击“确认选择”。</s-paragraph>
       <s-search-field label="搜索商品或 SKU" value={search} onInput={event => setSearch(event.currentTarget.value)} />
       <s-stack direction="inline" gap="base">
         <s-button variant="primary" disabled={loading} onClick={() => { setRequest({ search, after: null }); setOnlySelected(false); }}>开始搜索</s-button>
