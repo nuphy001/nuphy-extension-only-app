@@ -199,21 +199,33 @@ async function loadDiscount(id: string) {
 function isBound(node: DiscountNode | null, campaignId: string, token: string) {
   return node?.campaignBinding?.jsonValue?.campaignId === campaignId && node.campaignBinding.jsonValue.bindingToken === token && !!node.discount.startsAt;
 }
-async function findPrepared(campaignId: string, token: string): Promise<NativeDiscount | undefined> {
+type DiscountPreparation = { shopId: string; campaignId: string; token: string; attempted: boolean; owner?: NativeDiscount; startsAt: string };
+function matchesPreparation(node: DiscountNode | null, campaign: StoredCampaign, preparation: DiscountPreparation) {
+  if (!node || !node.discount.startsAt || !isBound(node, campaign.id, preparation.token)) return false;
+  return Date.parse(node.discount.startsAt) === Date.parse(preparation.startsAt)
+    && (node.discount.endsAt ? Date.parse(node.discount.endsAt) : null) === (campaign.endsAt ? Date.parse(campaign.endsAt) : null)
+    && (node.discount.status !== 'EXPIRED' || Boolean(node.discount.endsAt && Date.parse(node.discount.endsAt) <= Date.now()));
+}
+async function findPrepared(campaign: StoredCampaign, preparation: DiscountPreparation): Promise<NativeDiscount | undefined> {
   let after: string | null = null;
   do {
     const result: { discountNodes: { nodes: DiscountNode[]; pageInfo: PageInfo } } = await query(findDiscountsQuery, { after });
-    const found = result.discountNodes.nodes.find(node => isBound(node, campaignId, token));
-    if (found) return { id: found.id, token };
+    const found = result.discountNodes.nodes.find(node => matchesPreparation(node, campaign, preparation));
+    if (found) return { id: found.id, token: preparation.token };
     const page = result.discountNodes.pageInfo;
     if (!page.hasNextPage) return;
     if (!page.endCursor || page.endCursor === after) throw new Error('未能确认折扣创建结果，请稍后重试。');
     after = page.endCursor;
   } while (true);
 }
-const preparations = new Map<string, { token: string; attempted: boolean; owner?: NativeDiscount; startsAt: string }>();
+const preparations = new Map<string, DiscountPreparation>();
 const uncertainPublications = new Map<string, StoredCampaign | null>();
 const savingShops = new Set<string>();
+function clearPreparations(shopId: string, campaignId: string) {
+  for (const [key, preparation] of preparations) {
+    if (preparation.shopId === shopId && preparation.campaignId === campaignId) preparations.delete(key);
+  }
+}
 function newBindingToken() {
   const runtime = globalThis as unknown as { crypto?: { randomUUID?: () => string } };
   return runtime.crypto?.randomUUID?.() ?? `bogo-${Date.now().toString(36)}-${Math.random().toString(36).slice(2).padEnd(16, '0')}-${Math.random().toString(36).slice(2).padEnd(16, '0')}`;
@@ -224,13 +236,20 @@ async function prepareDiscount(shopId: string, campaign: StoredCampaign, base: S
   if (!preparation) {
     // “立即开始”不保存显式时间；排期未改时沿用原 owner 的开始，避免历史结束时间早于新的 now。
     const historicalStart = same(base?.startsAt, campaign.startsAt) ? previous?.discount.startsAt : undefined;
-    preparation = { token: newBindingToken(), attempted: false, startsAt: campaign.startsAt ?? historicalStart ?? new Date().toISOString() };
+    preparation = { shopId, campaignId: campaign.id, token: newBindingToken(), attempted: false, startsAt: campaign.startsAt ?? historicalStart ?? new Date().toISOString() };
     preparations.set(key, preparation);
   }
-  if (preparation.owner) return { ...preparation.owner };
+  if (preparation.owner) {
+    const node = await loadDiscount(preparation.owner.id);
+    if (matchesPreparation(node, campaign, preparation)) return { ...preparation.owner };
+    // 准备后尚未发布的折扣也可能被删除、停用或改期，不能仅凭内存缓存复用。
+    preparation.owner = undefined;
+    preparation.attempted = false;
+    preparation.token = newBindingToken();
+  }
   // 请求超时不等于创建失败；同一草稿重试前按 token 查回已经准备的折扣。
   if (preparation.attempted) {
-    const found = await findPrepared(campaign.id, preparation.token);
+    const found = await findPrepared(campaign, preparation);
     if (found) { preparation.owner = found; return found; }
     // 搜索结果可能尚未包含上次创建。换 token 后再准备，避免两份 owner 共用有效绑定。
     preparation.token = newBindingToken();
@@ -260,7 +279,7 @@ async function prepareDiscount(shopId: string, campaign: StoredCampaign, base: S
     return { ...preparation.owner };
   } catch (error) {
     if (error instanceof MutationError) { preparations.delete(key); throw error; }
-    const found = await findPrepared(campaign.id, preparation.token).catch(() => undefined);
+    const found = await findPrepared(campaign, preparation).catch(() => undefined);
     if (found) { preparation.owner = found; return found; }
     throw new Error(`未能确认折扣准备结果；活动配置未发布，请保留输入后重试。${error instanceof Error ? error.message : ''}`);
   }
@@ -291,6 +310,7 @@ export async function saveCampaign(settings: Settings, baseCampaign: StoredCampa
     const current = config.campaigns.find(campaign => campaign.id === id);
     if (uncertainPublications.has(publicationKey) && same(current, uncertainPublications.get(publicationKey) ?? undefined)) {
       uncertainPublications.delete(publicationKey);
+      clearPreparations(settings.shop.id, id);
       if (baseCampaign?.nativeDiscount && (!current?.enabled || current.nativeDiscount?.id !== baseCampaign.nativeDiscount.id)) {
         const warning = await retireDiscount(baseCampaign.nativeDiscount, id);
         if (warning) latest.warnings = [warning];
@@ -326,6 +346,7 @@ export async function saveCampaign(settings: Settings, baseCampaign: StoredCampa
       saved = verified;
     }
     uncertainPublications.delete(publicationKey);
+    clearPreparations(settings.shop.id, id);
     if (current?.nativeDiscount && (!draft?.enabled || draft.nativeDiscount?.id !== current.nativeDiscount.id)) {
       const warning = await retireDiscount(current.nativeDiscount, id);
       if (warning) saved.warnings = [warning];

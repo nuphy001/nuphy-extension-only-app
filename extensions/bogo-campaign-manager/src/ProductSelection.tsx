@@ -1,6 +1,6 @@
-import { useRef, useState } from 'preact/hooks';
+import { useState } from 'preact/hooks';
 import type { StoredCampaign } from '../../nuphy-free-gift-discount/src/configuration';
-import { loadProducts, pickProducts, type Product, type Variant } from './api';
+import type { pickProducts, PickerProductSelection, Product, Variant } from './api';
 
 export const numericId = (id: string) => id.split('/').pop()!;
 export function selectedProductIds(campaign: StoredCampaign, variants: Record<string, Variant>, role: 'trigger' | 'gift') {
@@ -38,6 +38,15 @@ export function applyProductSelection(campaign: StoredCampaign, role: 'trigger' 
   return { triggerProducts, triggerVariantIds };
 }
 
+function triggerSummary(campaign: StoredCampaign, productId: string, product?: Product) {
+  if (!product) return '请重试读取产品';
+  const rule = campaign.triggerProducts?.find(item => item.productId === productId);
+  if (!rule) return '仅部分规格 · 已选 ' + product.variants.filter(variant => campaign.triggerVariantIds.includes(numericId(variant.id))).length + ' 个';
+  if (!rule.excludedVariantIds.length) return '全部 ' + product.variantsCount + ' 个规格参与';
+  const count = product.variants.filter(variant => !rule.excludedVariantIds.includes(numericId(variant.id))).length;
+  return count + ' / ' + product.variantsCount + ' 个规格参与 · 已排除 ' + rule.excludedVariantIds.length + ' 个';
+}
+
 type Props = {
   role: 'trigger' | 'gift';
   campaign: StoredCampaign;
@@ -46,47 +55,28 @@ type Props = {
   disabled: boolean;
   error?: string;
   onChange: (patch: Partial<StoredCampaign>) => void;
-  onProducts: (products: Record<string, Product>) => void;
-  onBusy: (busy: boolean) => void;
+  onBrowse: (initial: PickerProductSelection[], search: string) => void;
+  onRetry: (productId: string) => void;
 };
 
 export function ProductSelection(props: Props) {
-  const { role, campaign, products, variants, disabled, onChange, onProducts, onBusy } = props;
+  const { role, campaign, products, variants, disabled, onChange, onBrowse, onRetry } = props;
   const [search, setSearch] = useState('');
-  const [error, setError] = useState('');
-  const pending = useRef(false);
   const isTrigger = role === 'trigger';
   const ids = selectedProductIds(campaign, variants, role);
   const ownedBy = (variantId: string, productId: string) => numericId(variants[variantId]?.product.id ?? '') === productId;
 
-  async function browse() {
-    if (disabled || pending.current) return;
-    pending.current = true; onBusy(true); setError('');
-    try {
-      const initial = ids.map(productId => {
-        const rule = isTrigger && campaign.triggerProducts?.find(item => item.productId === productId);
-        return rule ? { productId, excludedVariantIds: rule.excludedVariantIds }
-          : { productId, variantIds: (isTrigger ? campaign.triggerVariantIds : campaign.gifts.map(gift => gift.variantId)).filter(id => ownedBy(id, productId)) };
-      });
-      const result = await pickProducts(initial, search.trim());
-      if (!result) return;
-      onProducts(result.products);
-      onChange(applyProductSelection(campaign, role, result, variants));
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : '无法读取产品，请重试');
-    } finally { pending.current = false; onBusy(false); }
-  }
-
-  async function retry(productId: string) {
-    if (disabled || pending.current) return;
-    pending.current = true; onBusy(true); setError('');
-    try { onProducts(await loadProducts([productId])); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : '产品信息仍无法读取'); }
-    finally { pending.current = false; onBusy(false); }
+  function browse() {
+    if (disabled) return;
+    const initial = ids.map(productId => {
+      const rule = isTrigger && campaign.triggerProducts?.find(item => item.productId === productId);
+      return rule ? { productId, excludedVariantIds: rule.excludedVariantIds }
+        : { productId, variantIds: (isTrigger ? campaign.triggerVariantIds : campaign.gifts.map(gift => gift.variantId)).filter(id => ownedBy(id, productId)) };
+    });
+    onBrowse(initial, search.trim());
   }
 
   function remove(productId: string, variantId?: string) {
-    setError('');
     onChange(isTrigger ? {
       triggerProducts: campaign.triggerProducts?.filter(item => item.productId !== productId),
       triggerVariantIds: campaign.triggerVariantIds.filter(id => !ownedBy(id, productId)),
@@ -102,15 +92,12 @@ export function ProductSelection(props: Props) {
         <s-search-field label={isTrigger ? '搜索适用产品变体' : '搜索赠品产品变体'} labelAccessibilityVisibility="exclusive"
           placeholder="搜索产品变体" value={search} disabled={disabled}
           onInput={event => setSearch(event.currentTarget.value)} />
-        <s-button disabled={disabled} onClick={() => void browse()}>浏览</s-button>
+        <s-button disabled={disabled} onClick={browse}>浏览</s-button>
       </s-grid>
-      {(props.error || error) && <s-banner tone="critical">{props.error || error}</s-banner>}
+      {props.error && <s-banner tone="critical">{props.error}</s-banner>}
       {rows.length > 0 && <s-box border="base" borderRadius="large" overflow="hidden" accessibilityRole="unordered-list">
         {rows.map(({ productId, variant }, index) => {
           const product = products[productId];
-          const rule = campaign.triggerProducts?.find(item => item.productId === productId);
-          const count = product?.variants.filter(item => rule ? !rule.excludedVariantIds.includes(numericId(item.id))
-            : campaign.triggerVariantIds.includes(numericId(item.id))).length ?? 0;
           const productTitle = product?.title ?? variant?.product.title ?? '产品信息暂不可用';
           const title = productTitle + (variant && variant.title !== 'Default Title' ? ' - ' + variant.title : '');
           const thumbnail = variant?.image ?? product?.featuredImage;
@@ -121,12 +108,9 @@ export function ProductSelection(props: Props) {
                 <s-thumbnail size="large" src={thumbnail?.url ?? undefined} alt={thumbnail?.altText ?? title} />
                 <s-stack gap="small-400">
                   <s-text type="strong">{title}</s-text>
-                  <s-text color="subdued">{isTrigger ? !product ? '请重试读取产品'
-                    : rule ? rule.excludedVariantIds.length ? count + ' / ' + product.variantsCount + ' 个规格参与 · 已排除 ' + rule.excludedVariantIds.length + ' 个'
-                      : '全部 ' + product.variantsCount + ' 个规格参与'
-                      : '仅部分规格 · 已选 ' + count + ' 个'
+                  <s-text color="subdued">{isTrigger ? triggerSummary(campaign, productId, product)
                     : campaign.triggerQuantity === undefined ? '随主商品数量' : '× ' + campaign.triggerQuantity}</s-text>
-                  {!product && <s-button variant="tertiary" disabled={disabled} onClick={() => void retry(productId)}>重试</s-button>}
+                  {!product && <s-button variant="tertiary" disabled={disabled} onClick={() => onRetry(productId)}>重试</s-button>}
                 </s-stack>
                 <s-button icon="x" variant="tertiary" disabled={disabled} accessibilityLabel={'移除' + (isTrigger ? '产品：' : '赠品：') + title}
                   onClick={() => remove(productId, variant && numericId(variant.id))} />

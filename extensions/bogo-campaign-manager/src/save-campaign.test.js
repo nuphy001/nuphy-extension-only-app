@@ -114,6 +114,64 @@ it('CAS 冲突保留旧配置，重试复用已准备 owner', async () => {
   expect(state.created).toBe(1);
 });
 
+it.each(['删除', '更换绑定', '修改开始', '修改结束', '停用'])('已准备折扣被%s后重试重新准备，不发布失效绑定', async change => {
+  const original = campaign('a'); const state = backend([original]);
+  const settings = copy(state.settings); const draft = { ...original, startsAt, endsAt };
+  state.failCas = true;
+  await expect(saveCampaign(settings, original, draft)).rejects.toThrow('其他人修改');
+  const previous = state.owners.get(ownerId(1001));
+  const previousToken = previous.campaignBinding.jsonValue.bindingToken;
+  if (change === '删除') state.owners.delete(previous.id);
+  if (change === '更换绑定') previous.campaignBinding.jsonValue.bindingToken = 'another-campaign-binding-token-123456';
+  if (change === '修改开始') previous.discount.startsAt = '2030-01-02T00:00:00.000Z';
+  if (change === '修改结束') previous.discount.endsAt = '2030-03-01T00:00:00.000Z';
+  if (change === '停用') previous.discount.status = 'EXPIRED';
+
+  state.failCas = false;
+  const saved = initialConfig(await saveCampaign(settings, original, draft)).campaigns[0];
+  expect(saved.nativeDiscount.id).toBe(ownerId(1002));
+  expect(saved.nativeDiscount.token).not.toBe(previousToken);
+  expect(state.owners.get(saved.nativeDiscount.id).discount).toMatchObject({ startsAt, endsAt });
+  expect(state.created).toBe(2);
+  expect(state.retired).toEqual([]);
+});
+
+it('准备折扣校验断网时保留缓存，恢复后仍可安全复用', async () => {
+  const original = campaign('a'); const state = backend([original]);
+  const settings = copy(state.settings); const draft = { ...original, startsAt, endsAt };
+  state.failCas = true;
+  await expect(saveCampaign(settings, original, draft)).rejects.toThrow('其他人修改');
+  state.failCas = false;
+  const query = shopify.query;
+  vi.stubGlobal('shopify', { query: async (document, options) => {
+    if (document.includes('query BogoDiscount(')) throw new Error('折扣读取失败');
+    return query(document, options);
+  } });
+  await expect(saveCampaign(settings, original, draft)).rejects.toThrow('折扣读取失败');
+  expect(state.created).toBe(1);
+  expect(state.commits).toBe(0);
+  vi.stubGlobal('shopify', { query });
+  const saved = initialConfig(await saveCampaign(settings, original, draft)).campaigns[0];
+  expect(saved.nativeDiscount.id).toBe(ownerId(1001));
+  expect(state.created).toBe(1);
+});
+
+it.each([false, true])('发布确认后清理准备缓存，删除再建不会复用上次事务（响应丢失：%s）', async lostResponse => {
+  const state = backend([]); const settings = copy(state.settings);
+  const draft = campaign('a', { startsAt, endsAt });
+  state.loseCasResponse = lostResponse;
+  state.failReadAfterLostCas = lostResponse;
+  if (lostResponse) await expect(saveCampaign(settings, undefined, draft)).rejects.toThrow('保存响应丢失');
+  const saved = await saveCampaign(settings, undefined, draft);
+  const original = initialConfig(saved).campaigns[0];
+  state.failRetire = true;
+  const removed = await saveCampaign(saved, original, null);
+  expect(state.owners.get(original.nativeDiscount.id).discount.status).toBe('SCHEDULED');
+  const recreated = initialConfig(await saveCampaign(removed, undefined, draft)).campaigns[0];
+  expect(recreated.nativeDiscount.id).toBe(ownerId(1002));
+  expect(state.created).toBe(2);
+});
+
 it('创建响应丢失时通过绑定 token 读回，不重复创建', async () => {
   const state = backend([]); state.loseCreateResponse = true;
   const saved = await saveCampaign(copy(state.settings), undefined, campaign('a', { startsAt }));
