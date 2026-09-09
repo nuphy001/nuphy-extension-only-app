@@ -2,7 +2,7 @@ import '@shopify/ui-extensions/preact';
 import { render } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { configBytes, type StoredCampaign, type StoredConfig } from '../../nuphy-free-gift-discount/src/configuration';
-import { initialConfig, loadSettings, loadVariants, saveSettings, searchVariants, type Settings, type Variant } from './api';
+import { initialConfig, loadProductByHandle, loadSettings, loadVariants, saveSettings, searchVariants, type Settings, type Variant } from './api';
 
 export default async () => { render(<App />, document.body); };
 const empty: StoredConfig = { version: 1, campaigns: [] };
@@ -75,6 +75,8 @@ function App() {
     setBusy(true); setError(''); setNotice('');
     try {
       if (config.campaigns.some(campaign => !campaign.name?.trim())) throw new Error('请填写每个活动的名称');
+      const multiGift = config.campaigns.filter(campaign => campaign.gifts.length !== 1);
+      if (multiGift.length) throw new Error(`每个活动只能选择一个赠品变体，请修改后再保存：${multiGift.map(campaign => campaign.name || campaign.id).join('、')}`);
       const next = await saveSettings(settings, config);
       setSettings(next); setSaved(config);
       setNotice('已保存。商城下一次购物车操作将读取新配置。');
@@ -136,10 +138,11 @@ function App() {
               <s-paragraph>数量设置只影响购物车里加几个赠品，免单规则保持不变。</s-paragraph>
               <s-button disabled={busy} onClick={() => setPickerRole('trigger')}>2. 选择买什么（主商品）</s-button>
               <VariantList ids={selected.triggerVariantIds} variants={variants} />
-              <s-button disabled={busy} onClick={() => setPickerRole('gift')}>3. 选择送什么（赠品）</s-button>
+              <s-button disabled={busy} onClick={() => setPickerRole('gift')}>3. 选择送什么（赠品，只能选一个变体）</s-button>
               <VariantList ids={selected.gifts.map(gift => gift.variantId)} variants={variants} />
-              <s-modal ref={pickerModal} heading={pickerRole === 'trigger' ? '选择买什么' : '选择送什么'} size="large-100" accessibilityLabel="选择活动商品" onHide={() => setPickerRole(null)}>
+              <s-modal ref={pickerModal} heading={pickerRole === 'trigger' ? '选择买什么' : '选择送什么（赠品只能选一个变体）'} size="large-100" accessibilityLabel="选择活动商品" onHide={() => setPickerRole(null)}>
                 {pickerRole && <ProductSelector key={`${selected.id}-${pickerRole}`}
+                  role={pickerRole}
                   initial={pickerRole === 'trigger' ? selected.triggerVariantIds : selected.gifts.map(gift => gift.variantId)}
                   known={variants} onCancel={() => setPickerRole(null)}
                   onSelect={(ids, products) => {
@@ -164,10 +167,41 @@ function App() {
   );
 }
 
-function ProductSelector({ initial, known, onCancel, onSelect }: {
-  initial: string[]; known: Record<string, Variant>; onCancel: () => void;
+function inStock(item: Variant | undefined) {
+  // 读不到库存数据时不拦截；“售罄继续卖”（currentlyNotInStock）的变体仍算可售。
+  if (!item) return true;
+  return item.currentlyNotInStock === true || (item.quantityAvailable ?? 1) > 0;
+}
+
+type VariantGroup = { key: string; title: string; image?: { url: string; altText: string | null }; ids: string[] };
+
+function groupByProduct(ids: string[], details: Record<string, Variant>): VariantGroup[] {
+  const groups: VariantGroup[] = [];
+  const index = new Map<string, number>();
+  for (const id of ids) {
+    const item = details[id];
+    const key = item?.product.id ?? `unknown-${id}`;
+    const at = index.get(key);
+    if (at === undefined) {
+      index.set(key, groups.length);
+      groups.push({
+        key,
+        title: item?.product.title ?? '商品已删除或不可读取',
+        image: item?.media.nodes[0]?.image ?? undefined,
+        ids: [id],
+      });
+    } else {
+      groups[at].ids.push(id);
+    }
+  }
+  return groups;
+}
+
+function ProductSelector({ role, initial, known, onCancel, onSelect }: {
+  role: 'trigger' | 'gift'; initial: string[]; known: Record<string, Variant>; onCancel: () => void;
   onSelect: (ids: string[], products: Record<string, Variant>) => void;
 }) {
+  const single = role === 'gift';
   const [search, setSearch] = useState('');
   const [request, setRequest] = useState<{ search: string; after: string | null }>({ search: '', after: null });
   const [products, setProducts] = useState<Variant[]>([]);
@@ -177,46 +211,101 @@ function ProductSelector({ initial, known, onCancel, onSelect }: {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [onlySelected, setOnlySelected] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   useEffect(() => {
     let cancelled = false;
     setLoading(true); setError('');
-    searchVariants(request.search, request.after).then(result => {
+    searchVariants(request.search, request.after, single).then(result => {
       if (cancelled) return;
       setProducts(result.nodes); setPage(result.pageInfo);
       setDetails(previous => ({ ...previous, ...Object.fromEntries(result.nodes.map(item => [item.id.split('/').pop()!, item])) }));
     }).catch(cause => { if (!cancelled) setError(errorMessage(cause)); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [request]);
+  }, [request, single]);
   const shown = onlySelected ? ids : products.map(item => item.id.split('/').pop()!);
+  const groups = groupByProduct(shown, details);
+  const allExpanded = groups.length > 0 && groups.every(group => expandedGroups[group.key]);
+  const giftInvalid = single && (ids.length !== 1 || !inStock(details[ids[0]]));
+  const toggleGroup = (key: string) => setExpandedGroups(previous => ({ ...previous, [key]: !previous[key] }));
+  const setAllGroups = (value: boolean) => setExpandedGroups(previous => {
+    const next = { ...previous };
+    for (const group of groups) next[group.key] = value;
+    return next;
+  });
+  const check = (id: string, checked: boolean) => setIds(previous => checked
+    ? (single ? [id] : [...new Set([...previous, id])])
+    : previous.filter(value => value !== id));
+  async function searchByHandle() {
+    const handle = search.trim();
+    if (!handle) return;
+    setLoading(true); setError('');
+    try {
+      const variants = await loadProductByHandle(handle);
+      if (!variants) throw new Error(`没有找到 Handle 为「${handle}」的商品，请检查后重试（Handle 是商品网址最后一段，如 nuphy-air75-v3）`);
+      const nodes = single ? variants.filter(item => inStock(item)) : variants;
+      setOnlySelected(false);
+      setProducts(nodes); setPage({ hasNextPage: false, endCursor: null });
+      setDetails(previous => ({ ...previous, ...Object.fromEntries(nodes.map(item => [item.id.split('/').pop()!, item])) }));
+    } catch (cause) {
+      setError(errorMessage(cause));
+    } finally { setLoading(false); }
+  }
+  // 两处渲染（顶部 / 底部）各自调用，避免复用同一个 vnode。
+  const pageNav = () => <>
+    <s-button disabled={loading || !request.after} onClick={() => setRequest({ search: request.search, after: null })}>回到第一页</s-button>
+    <s-button disabled={loading || !!error || !page.hasNextPage} onClick={() => setRequest({ search: request.search, after: page.endCursor })}>下一页</s-button>
+    <s-text color="subdued">{loading ? '加载中…' : `本页 ${products.length} 个变体`}</s-text>
+  </>;
   return <s-section heading={initial.length ? '选择商品（已选商品会保留）' : '选择商品'}>
     <s-stack gap="base">
-      <s-paragraph>搜索商品名称或 SKU，勾选需要的商品变体，再点击“确认选择”。</s-paragraph>
+      <s-paragraph>搜索商品名称、SKU 或商品 Handle，勾选需要的商品变体，再点击“确认选择”。{single ? '赠品按主商品分组展示，点“展开”挑选具体变体。' : ''}</s-paragraph>
+      {single && <s-banner tone="info">一个活动只能送一个赠品变体：点击其他变体会替换当前选择；无库存的变体不能作为赠品，搜索结果已自动过滤。</s-banner>}
       <s-search-field label="搜索商品或 SKU" value={search} onInput={event => setSearch(event.currentTarget.value)} />
       <s-stack direction="inline" gap="base">
         <s-button variant="primary" disabled={loading} onClick={() => { setRequest({ search, after: null }); setOnlySelected(false); }}>开始搜索</s-button>
+        <s-button disabled={loading || !search.trim()} onClick={() => void searchByHandle()}>按 Handle 搜索</s-button>
         <s-button disabled={loading} onClick={() => setOnlySelected(value => !value)}>{onlySelected ? '回到搜索结果' : `只看已选（${ids.length}）`}</s-button>
-        <s-button disabled={loading || onlySelected || !!error} onClick={() => setIds(previous => [...new Set([...previous, ...shown])])}>全选本页</s-button>
+        {!single && <s-button disabled={loading || onlySelected || !!error} onClick={() => setIds(previous => [...new Set([...previous, ...shown])])}>全选本页</s-button>}
+        <s-button disabled={loading || !groups.length} onClick={() => setAllGroups(!allExpanded)}>{allExpanded ? '全部收起' : '全部展开'}</s-button>
         <s-button tone="critical" disabled={loading || ids.length === 0} onClick={() => setIds([])}>清空当前选择</s-button>
       </s-stack>
+      {!onlySelected && <s-stack direction="inline" gap="base">{pageNav()}</s-stack>}
       {error && <s-banner tone="critical">{error}</s-banner>}
-      {loading ? <s-spinner accessibilityLabel="正在搜索商品" /> : shown.map(id => {
-        const item = details[id];
-        const image = item?.media.nodes[0]?.image;
-        return <s-stack key={id} direction="inline" gap="base" alignItems="center">
-          {image && <s-thumbnail src={image.url} alt={image.altText ?? item.product.title} />}
-          <s-checkbox label={item ? `${item.product.title} · ${item.title}` : `已选变体 ${id}`} checked={ids.includes(id)} onChange={event => {
-            setIds(previous => event.currentTarget.checked ? [...new Set([...previous, id])] : previous.filter(value => value !== id));
-          }} />
-        </s-stack>;
-      })}
-      {!loading && !shown.length && <s-paragraph>{onlySelected ? '还没有选商品。' : '没有找到商品，请换个关键词再搜。'}</s-paragraph>}
-      {!onlySelected && <s-stack direction="inline" gap="base">
-        <s-button disabled={loading || !request.after} onClick={() => setRequest({ search: request.search, after: null })}>回到第一页</s-button>
-        <s-button disabled={loading || !!error || !page.hasNextPage} onClick={() => setRequest({ search: request.search, after: page.endCursor })}>下一页</s-button>
-      </s-stack>}
+      {loading ? <s-spinner accessibilityLabel="正在搜索商品" /> : <>
+        {groups.map(group => {
+          const expanded = !!expandedGroups[group.key];
+          const selectedCount = group.ids.filter(id => ids.includes(id)).length;
+          return <s-stack key={group.key} gap="small">
+            <s-stack direction="inline" gap="base" alignItems="center">
+              <s-button variant="tertiary" onClick={() => toggleGroup(group.key)}>{expanded ? '收起' : `展开（${group.ids.length}）`}</s-button>
+              {group.image && <s-thumbnail src={group.image.url} alt={group.image.altText ?? group.title} />}
+              <s-text type="strong">{group.title}</s-text>
+              <s-text color="subdued">已选 {selectedCount} / {group.ids.length} 个变体</s-text>
+              {!single && <s-button variant="tertiary" disabled={loading} onClick={() => setIds(previous => [...new Set([...previous, ...group.ids])])}>全选本组</s-button>}
+            </s-stack>
+            {expanded && group.ids.map(id => {
+              const item = details[id];
+              const image = item?.media.nodes[0]?.image;
+              return <s-stack key={id} direction="inline" gap="base" alignItems="center">
+                {image && <s-thumbnail src={image.url} alt={image.altText ?? item?.product.title} />}
+                <s-checkbox label={item ? `${item.product.title} · ${item.title}` : `已选变体 ${id}`}
+                  checked={ids.includes(id)}
+                  // 赠品模式下无库存变体禁止勾选，但已勾选的允许取消。
+                  disabled={single && !inStock(item) && !ids.includes(id)}
+                  onChange={event => check(id, event.currentTarget.checked)} />
+                {!inStock(item) && <s-badge tone="warning">无库存</s-badge>}
+              </s-stack>;
+            })}
+          </s-stack>;
+        })}
+        {!groups.length && <s-paragraph>{onlySelected ? '还没有选商品。' : single ? '没有找到有库存的商品，请换个关键词再搜。' : '没有找到商品，请换个关键词再搜。'}</s-paragraph>}
+      </>}
+      {!onlySelected && <s-stack direction="inline" gap="base">{pageNav()}</s-stack>}
       <s-stack direction="inline" gap="base">
-        <s-button variant="primary" disabled={loading} onClick={() => onSelect(ids, details)}>确认选择（{ids.length} 个）</s-button>
+        <s-button variant="primary" disabled={loading || (single && giftInvalid)} onClick={() => onSelect(ids, details)}>确认选择（{ids.length} 个）</s-button>
+        {single && ids.length !== 1 && <s-text color="subdued">赠品必须且只能选择一个变体</s-text>}
+        {single && ids.length === 1 && !inStock(details[ids[0]]) && <s-text color="subdued">选中的赠品没有库存，请换一个</s-text>}
         <s-button disabled={loading || ids.length === 0} onClick={() => setIds([])}>取消全部选择</s-button>
         <s-button onClick={onCancel}>不保存这次选择</s-button>
       </s-stack>

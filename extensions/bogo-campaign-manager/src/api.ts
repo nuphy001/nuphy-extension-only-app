@@ -1,5 +1,5 @@
 import { parseConfig, type StoredConfig } from '../../nuphy-free-gift-discount/src/configuration';
-import { loadConfigQuery, defineConfigMutation, saveConfigMutation, variantsQuery, searchVariantsQuery } from './queries';
+import { loadConfigQuery, defineConfigMutation, saveConfigMutation, variantsQuery, searchVariantsQuery, productByHandleQuery } from './queries';
 import legacy from './legacy-campaigns.json';
 
 type Metafield = { compareDigest: string; value?: string; jsonValue?: unknown };
@@ -8,7 +8,12 @@ export type Settings = {
   shop: { id: string; myshopifyDomain: string; mode: Metafield | null; config: Metafield | null };
   metafieldDefinitions: { nodes: Definition[] };
 };
-export type Variant = { id: string; title: string; product: { title: string }; media: { nodes: { image?: { url: string; altText: string | null } | null }[] } };
+export type Variant = {
+  id: string; title: string;
+  currentlyNotInStock?: boolean; quantityAvailable?: number | null;
+  product: { id: string; title: string };
+  media: { nodes: { image?: { url: string; altText: string | null } | null }[] };
+};
 type UserError = { message: string; code?: string };
 
 async function query<T>(document: string, variables: Record<string, unknown> = {}): Promise<T> {
@@ -84,7 +89,20 @@ export async function saveSettings(settings: Settings, value: StoredConfig): Pro
     shop: { ...settings.shop, mode: { ...mode, value: 'managed' }, config: { ...campaigns, jsonValue: config } },
   };
 }
-export async function searchVariants(search: string, after: string | null) {
-  const result = await query<{ productVariants: { nodes: Variant[]; pageInfo: { hasNextPage: boolean; endCursor: string | null } } }>(searchVariantsQuery, { search, after });
+export async function searchVariants(search: string, after: string | null, availableOnly = false) {
+  // 选赠品时用 available:true 在服务端过滤掉无库存变体（开启“售罄继续卖”的变体仍会被视为可售）。
+  const result = await query<{ productVariants: { nodes: Variant[]; pageInfo: { hasNextPage: boolean; endCursor: string | null } } }>(
+    searchVariantsQuery,
+    { search: availableOnly ? `available:true ${search}`.trim() : search, after },
+  );
   return result.productVariants;
+}
+export async function loadProductByHandle(handle: string): Promise<Variant[] | null> {
+  const result = await query<{ product: {
+    id: string; title: string;
+    variants: { nodes: Omit<Variant, 'product'>[] } | null;
+  } | null }>(productByHandleQuery, { handle });
+  const product = result.product;
+  if (!product) return null;
+  return (product.variants?.nodes ?? []).map(variant => ({ ...variant, product: { id: product.id, title: product.title } }));
 }

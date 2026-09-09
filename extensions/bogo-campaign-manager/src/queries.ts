@@ -23,12 +23,20 @@ export const saveConfigMutation = `mutation BogoSave($metafields: [MetafieldsSet
 export const variantsQuery = `query BogoVariants($ids: [ID!]!) {
   nodes(ids: $ids) {
     __typename
-    ... on ProductVariant { id title product { title } media(first: 1) { nodes { __typename ... on MediaImage { image { url altText } } } } }
+    ... on ProductVariant { id title currentlyNotInStock quantityAvailable product { id title } media(first: 1) { nodes { __typename ... on MediaImage { image { url altText } } } } }
   }
 }`;
 export const searchVariantsQuery = `query BogoSearchVariants($search: String!, $after: String) {
   productVariants(first: 50, query: $search, after: $after) {
-    nodes { id title product { title } media(first: 1) { nodes { __typename ... on MediaImage { image { url altText } } } } }
+    nodes { id title currentlyNotInStock quantityAvailable product { id title } media(first: 1) { nodes { __typename ... on MediaImage { image { url altText } } } } }
     pageInfo { hasNextPage endCursor }
+  }
+}`;
+export const productByHandleQuery = `query BogoProductByHandle($handle: String!) {
+  product(identifier: {handle: $handle}) {
+    id title
+    variants(first: 250) {
+      nodes { id title currentlyNotInStock quantityAvailable media(first: 1) { nodes { __typename ... on MediaImage { image { url altText } } } } }
+    }
   }
 }`;
