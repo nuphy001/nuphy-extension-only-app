@@ -97,11 +97,11 @@ export async function searchVariants(search: string, after: string | null, avail
   return result.productVariants;
 }
 export async function loadProductByHandle(handle: string): Promise<Variant[] | null> {
-  const result = await query<{ product: {
+  const result = await query<{ products: { nodes: Array<{
     id: string; title: string;
     variants: { nodes: Omit<Variant, 'product'>[] } | null;
-  } | null }>(productByHandleQuery, { handle });
-  const product = result.product;
+  }> } }>(productByHandleQuery, { handle: `handle:${handle}` });
+  const product = result.products.nodes[0] ?? null;
   if (!product) return null;
   return (product.variants?.nodes ?? []).map(variant => ({ ...variant, product: { id: product.id, title: product.title } }));
 }

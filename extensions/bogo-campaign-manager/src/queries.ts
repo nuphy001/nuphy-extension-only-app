@@ -33,10 +33,12 @@ export const searchVariantsQuery = `query BogoSearchVariants($search: String!, $
   }
 }`;
 export const productByHandleQuery = `query BogoProductByHandle($handle: String!) {
-  product(identifier: {handle: $handle}) {
-    id title
-    variants(first: 250) {
-      nodes { id title media(first: 1) { nodes { __typename ... on MediaImage { image { url altText } } } } }
+  products(first: 1, query: $handle) {
+    nodes {
+      id title handle
+      variants(first: 250) {
+        nodes { id title media(first: 1) { nodes { __typename ... on MediaImage { image { url altText } } } } }
+      }
     }
   }
 }`;
