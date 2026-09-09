@@ -10,7 +10,6 @@ export type Settings = {
 };
 export type Variant = {
   id: string; title: string;
-  currentlyNotInStock?: boolean; quantityAvailable?: number | null;
   product: { id: string; title: string };
   media: { nodes: { image?: { url: string; altText: string | null } | null }[] };
 };

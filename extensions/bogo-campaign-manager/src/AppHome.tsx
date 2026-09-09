@@ -168,9 +168,10 @@ function App() {
 }
 
 function inStock(item: Variant | undefined) {
-  // 读不到库存数据时不拦截；“售罄继续卖”（currentlyNotInStock）的变体仍算可售。
-  if (!item) return true;
-  return item.currentlyNotInStock === true || (item.quantityAvailable ?? 1) > 0;
+  // Admin API 不提供 Storefront 的 currentlyNotInStock/quantityAvailable 字段。
+  // 赠品选择器已通过 productVariants(query: "available:true") 做服务端过滤；
+  // 已保存的历史变体也必须继续显示，避免无法编辑旧活动。
+  return true;
 }
 
 type VariantGroup = { key: string; title: string; image?: { url: string; altText: string | null }; ids: string[] };
