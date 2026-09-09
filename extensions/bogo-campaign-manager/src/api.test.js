@@ -1,5 +1,5 @@
 // pnpm --filter nuphy-free-gift-discount exec vitest run --root ../bogo-campaign-manager --globals
-import { pickVariants, pickProducts, loadProducts, loadVariants } from './api';
+import { pickProducts, loadProducts, loadVariants } from './api';
 
 const gid = id => `gid://shopify/ProductVariant/${id}`;
 let resourcePicker;
@@ -12,22 +12,8 @@ beforeEach(() => {
 });
 afterEach(() => vi.unstubAllGlobals());
 
-it('回显已有变体，确认后去重并保留长 ID 的精度', async () => {
-  const id = '9007199254740993';
-  const variant = { id: gid(id), title: 'Lunar White', product: { title: 'Node 75' }, media: { nodes: [] } };
-  resourcePicker.mockResolvedValue([{ id: gid(id) }, { id: gid(id) }]);
-  query.mockResolvedValue({ data: { nodes: [variant] } });
-
-  const { media, ...details } = variant;
-  expect(await pickVariants(['42'])).toEqual({ ids: [id], products: { [id]: { ...details, image: null } } });
-  expect(resourcePicker).toHaveBeenCalledWith({
-    type: 'variant', action: 'select', multiple: true, selectionIds: [{ id: gid('42') }],
-  });
-  expect(query).toHaveBeenCalledTimes(1);
-  expect(query.mock.calls[0][1].variables).toEqual({ ids: [gid(id)] });
-});
-
 const productGid = id => `gid://shopify/Product/${id}`;
+const pickedProduct = (id, variants) => ({ id: productGid(id), variants: variants.map(id => ({ id: gid(id) })) });
 function productPage(id, variants, hasNextPage = false, endCursor = null, count = variants.length) {
   return { data: { product: {
     id: productGid(id), title: 'Node 75', featuredMedia: { image: { url: 'https://example.com/node.jpg', altText: null } },
@@ -35,21 +21,51 @@ function productPage(id, variants, hasNextPage = false, endCursor = null, count 
   } } };
 }
 
-it('产品模式不展示规格选择，完整读取全部变体并恢复产品预选', async () => {
+it('产品弹窗显示规格层级，结果仅保留勾选规格且完整读取产品详情', async () => {
   const id = '9007199254740993';
-  resourcePicker.mockResolvedValue([{ id: productGid(id) }]);
-  query.mockResolvedValueOnce(productPage(id, ['1', '2'], true, 'page-2', 3));
+  resourcePicker.mockResolvedValue([pickedProduct(id, [id, id]), pickedProduct(id, ['3'])]);
+  query.mockResolvedValueOnce(productPage('42', ['1', '2']));
+  query.mockResolvedValueOnce(productPage(id, [id, '2'], true, 'page-2', 3));
   query.mockResolvedValueOnce(productPage(id, ['3'], false, null, 3));
-  const result = await pickProducts(['42'], 'node');
+  const result = await pickProducts([{ productId: '42', variantIds: ['1', '1'] }], 'node');
   expect(resourcePicker).toHaveBeenCalledWith({
-    type: 'product', action: 'select', multiple: true, filter: { variants: false },
-    selectionIds: [{ id: productGid('42') }], query: 'node',
+    type: 'product', action: 'select', multiple: true, filter: { variants: true },
+    selectionIds: [pickedProduct('42', ['1'])], query: 'node',
   });
   expect(result.ids).toEqual([id]);
-  expect(result.products[id].variants.map(variant => variant.id)).toEqual(['1', '2', '3'].map(gid));
+  expect(result.selection).toEqual({ [id]: [id, '3'] });
+  expect(result.products[id].variants.map(variant => variant.id)).toEqual([id, '2', '3'].map(gid));
   expect(result.products[id].variants[2].product).toEqual({ id: productGid(id), title: 'Node 75' });
   expect(result.products[id].variantsCount).toBe(3);
-  expect(query.mock.calls[1][1].variables.after).toBe('page-2');
+  expect(query.mock.calls[2][1].variables.after).toBe('page-2');
+});
+
+it('整款排除范围按最新完整规格预选，新规格默认参与', async () => {
+  const initial = [{ productId: '42', excludedVariantIds: ['2'] }];
+  query.mockResolvedValueOnce(productPage('42', ['1', '2'], true, 'page-2', 3));
+  query.mockResolvedValueOnce(productPage('42', ['3'], false, null, 3));
+  resourcePicker.mockResolvedValue(undefined);
+  expect(await pickProducts(initial)).toBeUndefined();
+  expect(resourcePicker.mock.calls[0][0].selectionIds).toEqual([pickedProduct('42', ['1', '3'])]);
+
+  query.mockResolvedValueOnce(productPage('42', ['1', '2', '3', '4']));
+  expect(await pickProducts(initial)).toBeUndefined();
+  expect(resourcePicker.mock.calls[1][0].selectionIds).toEqual([pickedProduct('42', ['1', '3', '4'])]);
+  expect(initial).toEqual([{ productId: '42', excludedVariantIds: ['2'] }]);
+});
+
+it('空排除数组表示整款，优先于显式规格且包含新规格', async () => {
+  query.mockResolvedValue(productPage('42', ['1', '2', '3']));
+  resourcePicker.mockResolvedValue(undefined);
+  await pickProducts([{ productId: '42', excludedVariantIds: [], variantIds: ['1'] }]);
+  expect(resourcePicker.mock.calls[0][0].selectionIds).toEqual([pickedProduct('42', ['1', '2', '3'])]);
+});
+
+it('legacy 和赠品显式范围不因产品出现新规格而扩大预选', async () => {
+  query.mockResolvedValue(productPage('42', ['1', '2', '3']));
+  resourcePicker.mockResolvedValue(undefined);
+  await pickProducts([{ productId: '42', variantIds: ['1'] }]);
+  expect(resourcePicker.mock.calls[0][0].selectionIds).toEqual([pickedProduct('42', ['1'])]);
 });
 
 it('分页失败不返回部分规格列表', async () => {
@@ -66,17 +82,51 @@ it('分页游标异常或读取数量变化时拒绝不完整结果', async () =
 
 it('产品取消与清空选择保持不同语义', async () => {
   resourcePicker.mockResolvedValueOnce(undefined).mockResolvedValueOnce([]);
-  expect(await pickProducts(['42'])).toBeUndefined();
-  expect(await pickProducts(['42'])).toEqual({ ids: [], products: {} });
+  query.mockResolvedValue(productPage('42', ['1', '2']));
+  const initial = [{ productId: '42', variantIds: ['1'] }];
+  expect(await pickProducts(initial)).toBeUndefined();
+  expect(await pickProducts(initial)).toEqual({ ids: [], products: {}, selection: {} });
+  expect(query).toHaveBeenCalledTimes(2);
+  expect(initial).toEqual([{ productId: '42', variantIds: ['1'] }]);
+});
+
+it('空初始范围取消或清空不读取商品', async () => {
+  resourcePicker.mockResolvedValueOnce(undefined).mockResolvedValueOnce([]);
+  expect(await pickProducts([])).toBeUndefined();
+  expect(await pickProducts([])).toEqual({ ids: [], products: {}, selection: {} });
   expect(query).not.toHaveBeenCalled();
 });
 
 it('不把消失的产品或变体 ID 当作成功的产品选择', async () => {
-  resourcePicker.mockResolvedValueOnce([{ id: productGid('42') }]);
+  resourcePicker.mockResolvedValueOnce([pickedProduct('42', ['1'])]);
   query.mockResolvedValueOnce({ data: { product: null } });
   await expect(pickProducts([])).rejects.toThrow('已删除或不可访问');
   resourcePicker.mockResolvedValueOnce([{ id: gid('42') }]);
   await expect(pickProducts([])).rejects.toThrow('请重新选择');
+});
+
+it('初始商品或显式规格已删除时拒绝打开，避免静默丢失原范围', async () => {
+  query.mockResolvedValueOnce({ data: { product: null } });
+  await expect(pickProducts([{ productId: '42', excludedVariantIds: [] }])).rejects.toThrow('已删除或不可访问');
+  query.mockResolvedValueOnce(productPage('42', ['1', '2']));
+  await expect(pickProducts([{ productId: '42', variantIds: ['3'] }])).rejects.toThrow('规格已删除或不可访问');
+  expect(resourcePicker).not.toHaveBeenCalled();
+});
+
+it('返回规格缺失或为空时拒绝猜测整款范围', async () => {
+  resourcePicker.mockResolvedValueOnce([{ id: productGid('42') }]);
+  await expect(pickProducts([])).rejects.toThrow('未能读取所选规格');
+  resourcePicker.mockResolvedValueOnce([pickedProduct('42', [])]);
+  await expect(pickProducts([])).rejects.toThrow('未能读取所选规格');
+  resourcePicker.mockResolvedValueOnce([{ id: productGid('42'), variants: [{}] }]);
+  await expect(pickProducts([])).rejects.toThrow('请重新选择');
+  expect(query).not.toHaveBeenCalled();
+});
+
+it('确认后规格消失或归属不符时不返回可应用的选择', async () => {
+  resourcePicker.mockResolvedValue([pickedProduct('42', ['3'])]);
+  query.mockResolvedValue(productPage('42', ['1', '2']));
+  await expect(pickProducts([])).rejects.toThrow('所选规格已删除或不可访问');
 });
 
 it('变体详情按 100 个分批，保持字符串 ID 和图片信息', async () => {
@@ -89,34 +139,22 @@ it('变体详情按 100 个分批，保持字符串 ID 和图片信息', async (
   expect(Object.keys(result)).toHaveLength(101);
 });
 
-it('取消返回 undefined，不读取商品或写入配置', async () => {
-  resourcePicker.mockResolvedValue(undefined);
-  expect(await pickVariants(['42'])).toBeUndefined();
-  expect(query).not.toHaveBeenCalled();
-});
-
-it('确认空选时返回空草稿，与取消区分', async () => {
-  resourcePicker.mockResolvedValue([]);
-  expect(await pickVariants(['42'])).toEqual({ ids: [], products: {} });
-  expect(query).not.toHaveBeenCalled();
-});
-
-it('拒绝把商品 ID 当成变体 ID 写入活动', async () => {
-  resourcePicker.mockResolvedValue([{ id: 'gid://shopify/Product/42' }]);
-  await expect(pickVariants([])).rejects.toThrow('请重新选择');
-  expect(query).not.toHaveBeenCalled();
-});
-
 it('详情读取失败时不返回可应用的选择', async () => {
-  resourcePicker.mockResolvedValue([{ id: gid('42') }]);
+  resourcePicker.mockResolvedValue([pickedProduct('42', ['1'])]);
   query.mockRejectedValue(new Error('读取失败'));
-  await expect(pickVariants([])).rejects.toThrow('读取失败');
+  await expect(pickProducts([])).rejects.toThrow('读取失败');
+});
+
+it('预选读取失败时不打开选择器', async () => {
+  query.mockRejectedValue(new Error('读取失败'));
+  await expect(pickProducts([{ productId: '42', excludedVariantIds: [] }])).rejects.toThrow('读取失败');
+  expect(resourcePicker).not.toHaveBeenCalled();
 });
 
 it('选择器不可用或打开失败时给出错误', async () => {
   resourcePicker.mockRejectedValue(new Error('打开失败'));
-  await expect(pickVariants([])).rejects.toThrow('打开失败');
+  await expect(pickProducts([])).rejects.toThrow('打开失败');
   vi.stubGlobal('shopify', { query });
-  await expect(pickVariants([])).rejects.toThrow('商品选择器暂时不可用');
+  await expect(pickProducts([])).rejects.toThrow('商品选择器暂时不可用');
   expect(query).not.toHaveBeenCalled();
 });

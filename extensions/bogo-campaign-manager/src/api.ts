@@ -13,6 +13,7 @@ export type Settings = {
 export type ProductImage = { url: string; altText: string | null };
 export type Variant = { id: string; title: string; sku?: string | null; product: { id: string; title: string }; image?: ProductImage | null };
 export type Product = { id: string; title: string; featuredImage: ProductImage | null; variantsCount: number; variants: Variant[] };
+export type PickerProductSelection = { productId: string; variantIds?: string[]; excludedVariantIds?: string[] };
 type UserError = { message: string; code?: string };
 type PageInfo = { hasNextPage: boolean; endCursor: string | null };
 type VariantNode = Omit<Variant, 'image'> & { media: { nodes: { image?: ProductImage }[] } };
@@ -106,26 +107,47 @@ function picker() {
   if (typeof app.resourcePicker !== 'function') throw new Error('商品选择器暂时不可用，请刷新页面后重试。');
   return app;
 }
-export async function pickProducts(initialProductIds: string[], search?: string) {
-  const selection = await picker().resourcePicker({
-    type: 'product', action: 'select', multiple: true, filter: { variants: false },
-    selectionIds: uniqueIds(initialProductIds).map(id => ({ id: `gid://shopify/Product/${id}` })),
+export async function pickProducts(initial: PickerProductSelection[], search?: string) {
+  const app = picker();
+  const initialIds = uniqueIds(initial.map(item => item.productId));
+  const ranges = initial.map(item => ({
+    productId: item.productId,
+    variantIds: item.variantIds === undefined ? undefined : uniqueIds(item.variantIds),
+    excludedVariantIds: item.excludedVariantIds === undefined ? undefined : uniqueIds(item.excludedVariantIds),
+  }));
+  const current = await loadProducts(initialIds);
+  if (initialIds.some(id => !current[id])) throw new Error('部分商品已删除或不可访问，请先移除对应商品后重新选择。');
+  const selectionIds = ranges.map(item => {
+    const allIds = current[item.productId].variants.map(variant => numericId(variant.id, 'ProductVariant'));
+    // 整款范围每次从最新规格计算；legacy 和赠品只回显明确选择的规格。
+    const variantIds = item.excludedVariantIds !== undefined
+      ? allIds.filter(id => !item.excludedVariantIds!.includes(id))
+      : item.variantIds ?? allIds;
+    if (variantIds.some(id => !allIds.includes(id))) throw new Error('部分规格已删除或不可访问，请先移除对应规格后重新选择。');
+    return { id: `gid://shopify/Product/${item.productId}`, variants: variantIds.map(id => ({ id: `gid://shopify/ProductVariant/${id}` })) };
+  });
+  const picked = await app.resourcePicker({
+    type: 'product', action: 'select', multiple: true, filter: { variants: true },
+    selectionIds,
     ...(search ? { query: search } : {}),
   });
-  if (selection === undefined) return;
-  const ids = [...new Set(selection.map(item => numericId(item.id, 'Product')))];
+  if (picked === undefined) return;
+  const ids: string[] = [];
+  const selection: Record<string, string[]> = {};
+  for (const item of picked) {
+    const id = numericId(item.id, 'Product');
+    if (!('variants' in item) || !Array.isArray(item.variants) || !item.variants.length) throw new Error('未能读取所选规格，请重新选择。');
+    const variantIds = item.variants.map(variant => numericId(variant.id ?? '', 'ProductVariant'));
+    if (!selection[id]) ids.push(id);
+    selection[id] = [...new Set([...(selection[id] ?? []), ...variantIds])];
+  }
   const products = await loadProducts(ids);
   if (ids.some(id => !products[id])) throw new Error('部分商品已删除或不可访问，请重新选择。');
-  return { ids, products };
-}
-export async function pickVariants(initial: string[]) {
-  const selection = await picker().resourcePicker({
-    type: 'variant', action: 'select', multiple: true,
-    selectionIds: uniqueIds(initial).map(id => ({ id: `gid://shopify/ProductVariant/${id}` })),
-  });
-  if (selection === undefined) return;
-  const ids = [...new Set(selection.map(item => numericId(item.id, 'ProductVariant')))];
-  return { ids, products: await loadVariants(ids) };
+  for (const id of ids) {
+    const available = new Set(products[id].variants.map(variant => numericId(variant.id, 'ProductVariant')));
+    if (selection[id].some(variantId => !available.has(variantId))) throw new Error('部分所选规格已删除或不可访问，请重新选择。');
+  }
+  return { ids, products, selection };
 }
 
 async function ensureDefinitions(settings: Settings) {

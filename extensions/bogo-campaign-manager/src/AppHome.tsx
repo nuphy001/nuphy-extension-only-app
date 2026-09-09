@@ -11,8 +11,8 @@ const empty: StoredConfig = { version: 1, campaigns: [] };
 const message = (error: unknown) => error instanceof Error ? error.message : '操作未完成，请重试';
 const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
 type Issues = Partial<Record<'name' | 'trigger' | 'gift' | 'quantity' | 'schedule', string>>;
-type Editor = { base?: StoredCampaign; draft: StoredCampaign; giftProductIds: string[]; schedule: ScheduleFields; initial: string };
-const editorValue = (editor: Pick<Editor, 'draft' | 'giftProductIds' | 'schedule'>) => JSON.stringify([editor.draft, editor.giftProductIds, editor.schedule]);
+type Editor = { base?: StoredCampaign; draft: StoredCampaign; schedule: ScheduleFields; initial: string };
+const editorValue = (editor: Pick<Editor, 'draft' | 'schedule'>) => JSON.stringify([editor.draft, editor.schedule]);
 
 function App() {
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -66,12 +66,12 @@ function App() {
       id: 'bogo-' + crypto.randomUUID(), name: '', enabled: false, showLabel: true,
       triggerVariantIds: [], triggerProducts: [], gifts: [],
     };
-    const next = { base, draft, giftProductIds: selectedProductIds(draft, variants, 'gift'), schedule: scheduleFields(draft, timeZone) };
+    const next = { base, draft, schedule: scheduleFields(draft, timeZone) };
     setEditor({ ...next, initial: editorValue(next) }); setError(''); setNotice(''); setIssues({});
     requestAnimationFrame(() => document.getElementById('campaign-name')?.focus());
   }
-  function change(patch: Partial<StoredCampaign>, giftProductIds?: string[]) {
-    setEditor(current => current ? { ...current, draft: { ...current.draft, ...patch }, giftProductIds: giftProductIds ?? current.giftProductIds } : null);
+  function change(patch: Partial<StoredCampaign>) {
+    setEditor(current => current ? { ...current, draft: { ...current.draft, ...patch } } : null);
     setNotice(''); setIssues({});
   }
   function changeSchedule(patch: Partial<ScheduleFields>) {
@@ -101,12 +101,7 @@ function App() {
       }
     }
     if (draft.triggerVariantIds.some(id => !variants[id])) problems.trigger = '部分适用规格无法读取，请重试或移除';
-    if (!draft.gifts.length || !current.giftProductIds.length) problems.gift = '请选择赠品，并确定实际赠送规格';
-    for (const id of current.giftProductIds) {
-      if (!products[id] || !draft.gifts.some(gift => numericId(variants[gift.variantId]?.product.id ?? '') === id)) {
-        problems.gift = '请为每款赠品选择实际赠送规格';
-      }
-    }
+    if (!draft.gifts.length) problems.gift = '请在浏览弹窗中选择至少一个赠品规格';
     if (draft.gifts.some(gift => !variants[gift.variantId])) problems.gift = '部分赠品规格无法读取，请重试或移除';
     if (draft.triggerQuantity !== undefined && (!Number.isInteger(draft.triggerQuantity) || draft.triggerQuantity < 1 || draft.triggerQuantity > 2147483647)) {
       problems.quantity = '请填写大于 0 的整数';
@@ -223,10 +218,10 @@ function App() {
             <s-section heading="活动信息"><s-text-field id="campaign-name" label="活动名称" placeholder="例如：Node 键盘买赠"
               value={editor.draft.name ?? ''} maxLength={100} disabled={disabled} error={issues.name}
               onInput={event => change({ name: event.currentTarget.value })} details="同步为 Shopify 折扣名称，顾客结账时可能看到。" /></s-section>
-            <s-box id="field-trigger"><ProductSelection role="trigger" campaign={editor.draft} giftProductIds={editor.giftProductIds}
+            <s-box id="field-trigger"><ProductSelection role="trigger" campaign={editor.draft}
               products={products} variants={variants} disabled={disabled} error={issues.trigger}
               onChange={change} onProducts={mergeProducts} onBusy={setPickerBusy} /></s-box>
-            <s-box id="field-gift"><ProductSelection role="gift" campaign={editor.draft} giftProductIds={editor.giftProductIds}
+            <s-box id="field-gift"><ProductSelection role="gift" campaign={editor.draft}
               products={products} variants={variants} disabled={disabled} error={issues.gift}
               onChange={change} onProducts={mergeProducts} onBusy={setPickerBusy} /></s-box>
             <s-section heading="数量规则">
@@ -283,7 +278,7 @@ function App() {
               <s-text color="subdued">标签只影响显示，不改变赠品和折扣规则。</s-text>
             </s-stack></s-section>
             <s-section heading="活动摘要"><s-stack gap="small">
-              <s-text>{selectedProductIds(editor.draft, variants, 'trigger').length} 款适用产品 · {editor.giftProductIds.length} 款赠品</s-text>
+              <s-text>{selectedProductIds(editor.draft, variants, 'trigger').length} 款适用产品 · {editor.draft.gifts.length} 个赠品规格</s-text>
               <s-text>{preview ? formatTime(preview.startsAt, timeZone, '立即开始') + ' — ' + formatTime(preview.endsAt, timeZone, '无结束时间') : '请完善活动时间'}</s-text>
               {status && <s-stack direction="inline" gap="small"><s-text>保存后</s-text><s-badge tone={status.tone}>{status.label}</s-badge></s-stack>}
             </s-stack></s-section>
