@@ -1,0 +1,22 @@
+Browser tab: 1596119630, Title: "61style · BOGO 买赠活动 · Shopify Plus", URL: "https://admin.shopify.com/store/61style/apps/nuphy-local-dev".
+The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 227, 234-236
++															232 text •
+~							233 button 保存活动配置
+~								112 button 新增一个买赠活动
+~								113 button 放弃未保存的修改
+~								114 text 有修改还没保存  ·  165  / 10000 字节
+~									198 row 新买赠活动 Node Series High-profile Mechanical Keyboard · 2 个变体 尚未选择 停用 编辑
+~											202 text Node Series High-profile Mechanical Keyboard · 2 个变体
+~											208 button 编辑
+~									213 text field (settable) 1. 给活动起个名字, Value: 新买赠活动, ID: P0-0
+~								216 checkbox (settable, integer) Description: 启用这个活动, Value: 0
+~								217 checkbox (settable, integer) Description: 显示 FREE GIFT 标签, Value: 1
+~									221 pop up button (collapsed, settable) 赠送数量, Value: 买几个主商品，就送几个赠品, ID: select, Secondary Actions: Expand
+~											223 (selected) 买几个主商品，就送几个赠品
+~											224 无论买几个主商品，只送固定数量赠品
+~								226 button 2. 选择买什么（主商品）
++								234 text Node Series High-profile Mechanical Keyboard · 100 / Ink Gray / Blush Max Node Series High-profile Mechanical Keyboard · 100 / Ink Gray / Brown Max
+~								228 button 3. 选择送什么（赠品）
+~								231 button 删除这个活动
+The focused UI element is 0 AXWebArea 61style · BOGO 买赠活动 · Shopify Plus, URL: admin.shopify.com/store/61style/apps/nuphy-local-dev

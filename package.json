@@ -10,6 +10,7 @@
     "generate": "shopify app generate",
     "deploy": "node scripts/run-shopify-environment.mjs development app deploy",
     "dev:test": "node scripts/run-shopify-environment.mjs development app dev",
+    "dev:61style": "node scripts/run-shopify-environment.mjs development app dev --config oooyi",
     "info:production": "shopify app info --config production",
     "deploy:test": "node scripts/run-shopify-environment.mjs development app deploy",
     "deploy:production": "node scripts/run-shopify-environment.mjs production app deploy --config production",
@@ -25,5 +26,8 @@
   "private": true,
   "workspaces": [
     "extensions/*"
-  ]
+  ],
+  "devDependencies": {
+    "@graphql-codegen/cli": "5.0.5"
+  }
 }

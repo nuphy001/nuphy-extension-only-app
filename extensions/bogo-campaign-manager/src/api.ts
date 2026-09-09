@@ -1,5 +1,6 @@
+import type { StandardRenderingExtensionApi } from '@shopify/ui-extensions/admin';
 import { parseConfig, type StoredConfig } from '../../nuphy-free-gift-discount/src/configuration';
-import { loadConfigQuery, defineConfigMutation, saveConfigMutation, variantsQuery, searchVariantsQuery } from './queries';
+import { loadConfigQuery, defineConfigMutation, saveConfigMutation, variantsQuery } from './queries';
 import legacy from './legacy-campaigns.json';
 
 type Metafield = { compareDigest: string; value?: string; jsonValue?: unknown };
@@ -84,7 +85,19 @@ export async function saveSettings(settings: Settings, value: StoredConfig): Pro
     shop: { ...settings.shop, mode: { ...mode, value: 'managed' }, config: { ...campaigns, jsonValue: config } },
   };
 }
-export async function searchVariants(search: string, after: string | null) {
-  const result = await query<{ productVariants: { nodes: Variant[]; pageInfo: { hasNextPage: boolean; endCursor: string | null } } }>(searchVariantsQuery, { search, after });
-  return result.productVariants;
+export async function pickVariants(initial: string[]) {
+  // 当前 RC 的 AppHomeApi 漏了此声明，复用同一 SDK 的 Resource Picker 类型。
+  const app = shopify as typeof shopify & Pick<StandardRenderingExtensionApi<'admin.app.home.render'>, 'resourcePicker'>;
+  if (typeof app.resourcePicker !== 'function') throw new Error('商品选择器暂时不可用，请刷新页面后重试。');
+  const selection = await app.resourcePicker({
+    type: 'variant', action: 'select', multiple: true,
+    selectionIds: initial.map(id => ({ id: `gid://shopify/ProductVariant/${id}` })),
+  });
+  if (selection === undefined) return;
+  const ids = [...new Set(selection.map(item => {
+    const match = /^gid:\/\/shopify\/ProductVariant\/([1-9]\d*)$/.exec(item.id);
+    if (!match) throw new Error('未能读取所选商品，请重新选择。');
+    return match[1];
+  }))];
+  return { ids, products: await loadVariants(ids) };
 }

@@ -26,9 +26,3 @@ export const variantsQuery = `query BogoVariants($ids: [ID!]!) {
     ... on ProductVariant { id title product { title } media(first: 1) { nodes { __typename ... on MediaImage { image { url altText } } } } }
   }
 }`;
-export const searchVariantsQuery = `query BogoSearchVariants($search: String!, $after: String) {
-  productVariants(first: 50, query: $search, after: $after) {
-    nodes { id title product { title } media(first: 1) { nodes { __typename ... on MediaImage { image { url altText } } } } }
-    pageInfo { hasNextPage endCursor }
-  }
-}`;

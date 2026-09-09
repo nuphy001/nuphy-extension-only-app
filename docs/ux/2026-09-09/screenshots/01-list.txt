@@ -1,0 +1,187 @@
+Browser tab: 1596119630, Title: "61style · BOGO 买赠活动 · Shopify Plus", URL: "https://admin.shopify.com/store/61style/apps/nuphy-local-dev".
+0 AXWebArea 61style · BOGO 买赠活动 · Shopify Plus, URL: admin.shopify.com/store/61style/apps/nuphy-local-dev
+	1 container
+		2 container app
+			3 container AppFrame
+				4 text nuphy-local-dev
+				5 container AppFrameChrome
+					6 link Description: Skip to content, Value: admin.shopify.com/store/61style/apps/nuphy-local-dev#AppFrameMain
+					7 container AppFrameTopBar
+						8 container
+							9 container
+								10 image Shopify
+								11 image Shopify
+							12 button 搜索 ⌘ K
+								13 text 搜索
+								14 text ⌘
+								15 text K
+							16 button (collapsed) Description: Sidekick, Secondary Actions: Expand
+							17 button (collapsed) Description: 提醒动态 - 0 个未查看提醒, Secondary Actions: Expand
+							18 button (collapsed) Description: 廖一, Secondary Actions: Expand
+								19 image 61style
+								20 text 61style
+								21 text dev
+					22 container AppFrameBevel
+						23 container Description: Navigation, ID: AppFrameNav
+							24 container scroll-container
+								25 content list
+									26 link Description: 主页, Value: admin.shopify.com/store/61style
+									27 link (collapsed) Description: 订单, Value: admin.shopify.com/store/61style/orders, Secondary Actions: Expand
+									28 link (collapsed) Description: 产品, Value: admin.shopify.com/store/61style/products, Secondary Actions: Expand
+									29 link (collapsed) Description: 客户, Value: admin.shopify.com/store/61style/customers, Secondary Actions: Expand
+									30 link (collapsed) Description: 增长, Value: admin.shopify.com/store/61style/growth, Secondary Actions: Expand
+									31 link Description: 折扣, Value: admin.shopify.com/store/61style/discounts
+									32 link (collapsed) Description: 内容, Value: admin.shopify.com/store/61style/content/metaobjects, Secondary Actions: Expand
+									33 link (collapsed) Description: 市场, Value: admin.shopify.com/store/61style/markets, Secondary Actions: Expand
+									34 link (collapsed) Description: 财务, Value: admin.shopify.com/store/61style/finance, Secondary Actions: Expand
+									35 link (collapsed) Description: 分析, Value: admin.shopify.com/store/61style/analytics, Secondary Actions: Expand
+								36 content list
+									37 container
+										38 button 销售渠道
+											39 text 销售渠道
+										40 content list
+											41 sortable 在线商店
+												42 content list
+													43 link Description: 在线商店, Value: admin.shopify.com/store/61style/themes?appLoadId=5b46287b-852d-4cf1-9e6e-349d7b0fc9c0
+											44 sortable 智能体
+												45 content list
+													46 link Description: 智能体, Value: admin.shopify.com/store/61style/apps/agentic?appLoadId=ba7d67ec-3601-4c99-8ff1-c23eb441074e
+											47 sortable Headless
+												48 content list
+													49 link Description: Headless, Value: admin.shopify.com/store/61style/headless?appLoadId=278097cc-3554-4dff-85fe-173a64b3845c
+											50 sortable Hydrogen
+												51 content list
+													52 link Description: Hydrogen, Value: admin.shopify.com/store/61style/hydrogen?appLoadId=22de92ae-1f2f-42aa-8785-43abc45c07cd
+									53 container
+										54 button 应用
+											55 text 应用
+										56 content list
+											57 sortable Govee Discount App
+												58 content list
+													59 link Description: Govee Discount App, Value: admin.shopify.com/store/61style/apps/govee-discount-app?appLoadId=9915497e-dabd-49c3-8d8d-8b65ef995265
+											60 sortable Govee Preview App
+												61 content list
+													62 link Description: Govee Preview App, Value: admin.shopify.com/store/61style/apps/govee-preview-app?appLoadId=9f0a2035-4480-4fd1-95b5-cf24f8228676
+											63 sortable Functions Creator
+												64 content list
+													65 link Description: Functions Creator, Value: admin.shopify.com/store/61style/apps/functions-creator?appLoadId=0ffb3714-6985-494a-afaf-e0f4e98521be
+											66 sortable Function Junction Promos
+												67 content list
+													68 link Description: Function Junction Promos, Value: admin.shopify.com/store/61style/apps/presidio-functions?appLoadId=33dfac8d-f509-4633-88d4-4f702c4b6c9f
+											69 sortable Nexus Functions Creator
+												70 content list
+													71 link Description: Nexus Functions Creator, Value: admin.shopify.com/store/61style/apps/nexus-functions-creator?appLoadId=b2114dc7-248e-4c99-a44f-455258779835
+											72 sortable Infinite Google Ads
+												73 content list
+													74 link Description: Infinite Google Ads, Value: admin.shopify.com/store/61style/apps/google-ads-tracking-infinite?appLoadId=4ac93538-b785-4d51-9fc1-33f483246666
+											75 sortable Function Studio
+												76 content list
+													77 link Description: Function Studio, Value: admin.shopify.com/store/61style/apps/function-studio?appLoadId=39e1b245-7935-4012-92f7-78197c1e76a6
+											78 sortable Next CMS
+												79 content list
+													80 link Description: Next CMS, Value: admin.shopify.com/store/61style/apps/next-cms?appLoadId=65113a16-595a-466d-8c45-f38d23452af4
+											81 sortable beta-metabuf-cms
+												82 content list
+													83 link Description: beta-metabuf-cms, Value: admin.shopify.com/store/61style/apps/beta-metabuf?appLoadId=585c32f1-255c-4ca5-af30-5cd6a411373d
+											84 sortable nuphy-local-dev 固定到导航
+												85 content list
+													86 container
+														87 link Description: nuphy-local-dev, Value: admin.shopify.com/store/61style/apps/nuphy-local-dev
+														88 button 固定到导航
+															89 text •
+									90 container
+										91 button Sidekick 对话
+											92 text Sidekick 对话
+										93 content list
+											94 button Customer Account API应用方案
+										95 content list
+											96 button NuPhy 购物车页面下线咨询
+										97 content list
+											98 button 启用新版客户账户的步骤
+								99 content list
+									100 link Description: 设置, Value: admin.shopify.com/store/61style/settings
+						101 container
+							102 container nuphy-local-dev 的页面路径
+								103 link Description: nuphy-local-dev, Value: admin.shopify.com/store/61style/apps/nuphy-local-dev
+								104 heading BOGO 买赠活动, Value: 1
+									105 text BOGO 买赠活动
+							106 button (disabled) 保存活动配置
+							107 checkbox Description: 更多操作, Value: 0
+							108 container
+								109 heading 活动管理, Value: 2
+									110 text 活动管理
+								111 text 操作顺序很简单：新增活动 → 选择“买什么” → 选择“送什么” → 保存。
+								112 button 新增一个买赠活动
+								113 button (disabled) 放弃未保存的修改
+								114 text 已保存  ·  28  / 10000 字节
+								115 heading 活动列表（0）, Value: 2
+									116 text 活动列表（0）
+								117 text 暂无活动，点击“新增活动”选择商品。
+				118 container
+					119 button 最大化 Dev Console
+						120 image Developer Console Logo
+						121 text dev previews
+						122 text (2)
+					123 button 关闭 Dev Console
+				124 container
+					125 image Custom icon
+					126 heading Dev Console, Value: 2
+						127 text Dev Console
+					128 button open
+					129 button maximize
+					130 button open
+					131 container
+						132 button nuphy-local-dev 2417276459@qq.com 已更新：8 分钟前 清除开发预览 ···
+							133 text nuphy-local-dev
+							134 text 2417276459@qq.com
+							135 text 已更新：8 分钟前
+							136 button 清除开发预览
+							137 pop up button (collapsed) ···, Secondary Actions: Expand
+						138 button Next CMS 2417276459@qq.com 已更新：8月21日 4:01 清除开发预览 ···
+							139 text Next CMS
+							140 text 2417276459@qq.com
+							141 text 已更新：8月21日 4:01
+							142 button 清除开发预览
+							143 pop up button (collapsed) ···, Secondary Actions: Expand
+					144 table
+						145 row
+							146 cell
+								147 text Handle
+							148 cell
+								149 text Type
+							150 cell
+								151 text Previews
+						152 row
+							153 cell
+								154 text nuphy-local-dev
+							155 cell
+								156 text --
+							157 cell
+								158 container
+									159 button (disabled) Web
+								160 container
+									161 button (disabled) Mobile
+						162 row
+							163 cell
+								164 text bogo-campaign-manager
+							165 cell
+								166 text UI Extension
+							167 cell
+								168 container
+									169 button (disabled) admin.app.home.render
+						170 row
+							171 cell
+								172 text nuphy-checkout-validation
+							173 cell
+								174 text Function
+							175 cell
+								176 text --
+						177 row
+							178 cell
+								179 text nuphy-free-gift-discount
+							180 cell
+								181 text Function
+							182 cell
+								183 text --
+
+The focused UI element is 0 AXWebArea 61style · BOGO 买赠活动 · Shopify Plus, URL: admin.shopify.com/store/61style/apps/nuphy-local-dev
