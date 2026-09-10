@@ -252,7 +252,7 @@ function ProductSelector({ role, initial, known, onCancel, onSelect }: {
       setError(errorMessage(cause));
     } finally { setLoading(false); }
   }
-  // 两处渲染（顶部 / 底部）各自调用，避免复用同一个 vnode。
+  // 分页只渲染一次，固定在商品列表最底部。
   const pageNav = () => <>
     <s-button disabled={loading || !request.after} onClick={() => setRequest({ search: request.search, after: null })}>回到第一页</s-button>
     <s-button disabled={loading || !!error || !page.hasNextPage} onClick={() => setRequest({ search: request.search, after: page.endCursor })}>下一页</s-button>
@@ -271,7 +271,6 @@ function ProductSelector({ role, initial, known, onCancel, onSelect }: {
         <s-button disabled={loading || !groups.length} onClick={() => setAllGroups(!allExpanded)}>{allExpanded ? '全部收起' : '全部展开'}</s-button>
         <s-button tone="critical" disabled={loading || ids.length === 0} onClick={() => setIds([])}>清空当前选择</s-button>
       </s-stack>
-      {!onlySelected && <s-stack direction="inline" gap="base">{pageNav()}</s-stack>}
       {error && <s-banner tone="critical">{error}</s-banner>}
       {loading ? <s-spinner accessibilityLabel="正在搜索商品" /> : <>
         {groups.map(group => {
