@@ -209,6 +209,8 @@ function ProductSelector({ role, initial, known, onCancel, onSelect }: {
   const [details, setDetails] = useState(known);
   const [ids, setIds] = useState(initial);
   const [page, setPage] = useState<{ hasNextPage: boolean; endCursor: string | null }>({ hasNextPage: false, endCursor: null });
+  // Shopify 只给向前的游标，记录每页起点游标才能回退到上一页。
+  const [pageTrail, setPageTrail] = useState<(string | null)[]>([null]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [onlySelected, setOnlySelected] = useState(false);
@@ -246,16 +248,24 @@ function ProductSelector({ role, initial, known, onCancel, onSelect }: {
       if (!variants) throw new Error(`没有找到 Handle 为「${handle}」的商品，请检查后重试（Handle 是商品网址最后一段，如 nuphy-air75-v3）`);
       const nodes = single ? variants.filter(item => inStock(item)) : variants;
       setOnlySelected(false);
-      setProducts(nodes); setPage({ hasNextPage: false, endCursor: null });
+      setProducts(nodes); setPage({ hasNextPage: false, endCursor: null }); setPageTrail([null]);
       setDetails(previous => ({ ...previous, ...Object.fromEntries(nodes.map(item => [item.id.split('/').pop()!, item])) }));
     } catch (cause) {
       setError(errorMessage(cause));
     } finally { setLoading(false); }
   }
-  // 分页只渲染一次，固定在商品列表最底部。
+  // 顶部 / 底部各渲染一次（各自调用，避免复用同一个 vnode）。
   const pageNav = () => <>
-    <s-button disabled={loading || !request.after} onClick={() => setRequest({ search: request.search, after: null })}>回到第一页</s-button>
-    <s-button disabled={loading || !!error || !page.hasNextPage} onClick={() => setRequest({ search: request.search, after: page.endCursor })}>下一页</s-button>
+    <s-button disabled={loading || !request.after} onClick={() => { setPageTrail([null]); setRequest({ search: request.search, after: null }); }}>回到第一页</s-button>
+    <s-button disabled={loading || !!error || pageTrail.length <= 1} onClick={() => {
+      const trail = pageTrail.slice(0, -1);
+      setPageTrail(trail);
+      setRequest({ search: request.search, after: trail[trail.length - 1] ?? null });
+    }}>上一页</s-button>
+    <s-button disabled={loading || !!error || !page.hasNextPage} onClick={() => {
+      setPageTrail(trail => [...trail, page.endCursor]);
+      setRequest({ search: request.search, after: page.endCursor });
+    }}>下一页</s-button>
     <s-text color="subdued">{loading ? '加载中…' : `本页 ${products.length} 个变体`}</s-text>
   </>;
   return <s-section heading={initial.length ? '选择商品（已选商品会保留）' : '选择商品'}>
@@ -264,15 +274,16 @@ function ProductSelector({ role, initial, known, onCancel, onSelect }: {
       {single && <s-banner tone="info">一个活动只能送一个赠品变体：点击其他变体会替换当前选择；无库存的变体不能作为赠品，搜索结果已自动过滤。</s-banner>}
       <s-search-field label="搜索商品或 SKU" value={search} onInput={event => setSearch(event.currentTarget.value)} />
       <s-stack direction="inline" gap="base">
-        <s-button variant="primary" disabled={loading} onClick={() => { setRequest({ search, after: null }); setOnlySelected(false); }}>开始搜索</s-button>
+        <s-button variant="primary" disabled={loading} onClick={() => { setPageTrail([null]); setRequest({ search, after: null }); setOnlySelected(false); }}>开始搜索</s-button>
         <s-button disabled={loading || !search.trim()} onClick={() => void searchByHandle()}>按 Handle 搜索</s-button>
         <s-button disabled={loading} onClick={() => setOnlySelected(value => !value)}>{onlySelected ? '回到搜索结果' : `只看已选（${ids.length}）`}</s-button>
         {!single && <s-button disabled={loading || onlySelected || !!error} onClick={() => setIds(previous => [...new Set([...previous, ...shown])])}>全选本页</s-button>}
         <s-button disabled={loading || !groups.length} onClick={() => setAllGroups(!allExpanded)}>{allExpanded ? '全部收起' : '全部展开'}</s-button>
         <s-button tone="critical" disabled={loading || ids.length === 0} onClick={() => setIds([])}>清空当前选择</s-button>
       </s-stack>
+      {!onlySelected && <s-stack direction="inline" gap="base">{pageNav()}</s-stack>}
       {error && <s-banner tone="critical">{error}</s-banner>}
-      {loading ? <s-spinner accessibilityLabel="正在搜索商品" /> : <>
+      {loading ? <s-spinner accessibilityLabel="正在搜索商品" /> : <s-stack gap="base">
         {groups.map(group => {
           const expanded = !!expandedGroups[group.key];
           const selectedCount = group.ids.filter(id => ids.includes(id)).length;
@@ -300,7 +311,7 @@ function ProductSelector({ role, initial, known, onCancel, onSelect }: {
           </s-stack>;
         })}
         {!groups.length && <s-paragraph>{onlySelected ? '还没有选商品。' : single ? '没有找到有库存的商品，请换个关键词再搜。' : '没有找到商品，请换个关键词再搜。'}</s-paragraph>}
-      </>}
+      </s-stack>}
       {!onlySelected && <s-stack direction="inline" gap="base">{pageNav()}</s-stack>}
       <s-stack direction="inline" gap="base">
         <s-button variant="primary" disabled={loading || (single && giftInvalid)} onClick={() => onSelect(ids, details)}>确认选择（{ids.length} 个）</s-button>
