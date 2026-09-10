@@ -282,6 +282,13 @@ function ProductSelector({ role, initial, known, onCancel, onSelect }: {
         <s-button tone="critical" disabled={loading || ids.length === 0} onClick={() => setIds([])}>清空当前选择</s-button>
       </s-stack>
       {!onlySelected && <s-stack direction="inline" gap="base">{pageNav()}</s-stack>}
+      <s-stack direction="inline" gap="base">
+        <s-button variant="primary" disabled={loading || (single && giftInvalid)} onClick={() => onSelect(ids, details)}>确认选择（{ids.length} 个）</s-button>
+        {single && ids.length !== 1 && <s-text color="subdued">赠品必须且只能选择一个变体</s-text>}
+        {single && ids.length === 1 && !inStock(details[ids[0]]) && <s-text color="subdued">选中的赠品没有库存，请换一个</s-text>}
+        <s-button disabled={loading || ids.length === 0} onClick={() => setIds([])}>取消全部选择</s-button>
+        <s-button onClick={onCancel}>不保存这次选择</s-button>
+      </s-stack>
       {error && <s-banner tone="critical">{error}</s-banner>}
       {loading ? <s-spinner accessibilityLabel="正在搜索商品" /> : <s-stack gap="base">
         {groups.map(group => {
@@ -313,13 +320,6 @@ function ProductSelector({ role, initial, known, onCancel, onSelect }: {
         {!groups.length && <s-paragraph>{onlySelected ? '还没有选商品。' : single ? '没有找到有库存的商品，请换个关键词再搜。' : '没有找到商品，请换个关键词再搜。'}</s-paragraph>}
       </s-stack>}
       {!onlySelected && <s-stack direction="inline" gap="base">{pageNav()}</s-stack>}
-      <s-stack direction="inline" gap="base">
-        <s-button variant="primary" disabled={loading || (single && giftInvalid)} onClick={() => onSelect(ids, details)}>确认选择（{ids.length} 个）</s-button>
-        {single && ids.length !== 1 && <s-text color="subdued">赠品必须且只能选择一个变体</s-text>}
-        {single && ids.length === 1 && !inStock(details[ids[0]]) && <s-text color="subdued">选中的赠品没有库存，请换一个</s-text>}
-        <s-button disabled={loading || ids.length === 0} onClick={() => setIds([])}>取消全部选择</s-button>
-        <s-button onClick={onCancel}>不保存这次选择</s-button>
-      </s-stack>
     </s-stack>
   </s-section>;
 }
