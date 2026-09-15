@@ -1,57 +1,23 @@
-import type { StandardRenderingExtensionApi } from '@shopify/ui-extensions/admin';
-import { parseConfig, type StoredConfig, type StoredCampaign } from '../../nuphy-free-gift-discount/src/configuration';
-import { loadConfigQuery, defineConfigMutation, saveConfigMutation, variantsQuery, productQuery, discountQuery, findDiscountsQuery, createDiscountMutation, deactivateDiscountMutation, discountDefinitionQuery } from './queries';
+import { parseConfig } from '../../nuphy-free-gift-discount/src/configuration';
+import type { StoredConfig, StoredCampaign } from './types/campaign';
+import type { Settings, Variant, Product, VariantNode, PickerProductSelection, PickerOptions, PickerResult, ResourcePickerApi, DiscountNode, DiscountPreparation, NativeDiscount } from './types/api';
+import type * as Response from './types/responses';
+import { resourceId, uniqueIds } from './utils/ids';
+import { checkErrors, MutationError } from './utils/errors';
+import { initialSelection, isHandleSearch, normalizeSelection, pickerRanges, validateSelection, variantSelection } from './utils/picker';
+import { canonical, same, isBound, matchesPreparation, canReuseDiscount } from './utils/discount';
+import { loadConfigQuery, defineConfigMutation, saveConfigMutation, variantsQuery, productQuery, findProductQuery, discountQuery, findDiscountsQuery, createDiscountMutation, deactivateDiscountMutation, discountDefinitionQuery } from './queries';
 import legacy from './legacy-campaigns.json';
 
-type Metafield = { compareDigest: string; value?: string; jsonValue?: unknown };
-type Definition = { id: string; key: string; type: { name: string }; access: { storefront: string } };
-export type Settings = {
-  shop: { id: string; myshopifyDomain: string; ianaTimezone: string; mode: Metafield | null; config: Metafield | null };
-  metafieldDefinitions: { nodes: Definition[] };
-  warnings?: string[];
-};
-export type ProductImage = { url: string; altText: string | null };
-export type Variant = { id: string; title: string; sku?: string | null; product: { id: string; title: string }; image?: ProductImage | null };
-export type Product = { id: string; title: string; featuredImage: ProductImage | null; variantsCount: number; variants: Variant[] };
-export type PickerProductSelection = { productId: string; variantIds?: string[]; excludedVariantIds?: string[] };
-type UserError = { message: string; code?: string };
-type PageInfo = { hasNextPage: boolean; endCursor: string | null };
-type VariantNode = Omit<Variant, 'image'> & { media: { nodes: { image?: ProductImage }[] } };
-function variantImage(node: VariantNode): Variant {
-  const { media, ...variant } = node;
-  return { ...variant, image: media?.nodes.find(item => item.image)?.image ?? null };
-}
-type NativeDiscount = NonNullable<StoredCampaign['nativeDiscount']>;
-type DiscountNode = {
-  id: string;
-  campaignBinding: { jsonValue: { campaignId?: string; bindingToken?: string } } | null;
-  discount: { startsAt?: string; endsAt?: string | null; status?: string; combinesWith?: { productDiscounts: boolean; orderDiscounts: boolean; shippingDiscounts: boolean } };
-};
-class MutationError extends Error {}
-
+// 统一处理 Admin API 的 GraphQL 错误和空响应。
 async function query<T>(document: string, variables: Record<string, unknown> = {}): Promise<T> {
   const result = await shopify.query<T>(document, { variables, version: '2026-04' });
   if (result.errors?.length) throw new Error(result.errors.map(error => error.message).join('；'));
   if (!result.data) throw new Error('未能读取 Shopify 数据，请重试');
   return result.data;
 }
-function checkErrors(errors: UserError[]) {
-  if (!errors.length) return;
-  if (errors.some(error => error.code === 'INVALID_COMPARE_DIGEST' || error.code === 'STALE_OBJECT')) {
-    throw new MutationError('活动已被其他人修改。请重新加载后再编辑，避免覆盖对方的修改。');
-  }
-  throw new MutationError(errors.map(error => error.message).join('；'));
-}
-function numericId(id: string, resource: 'Product' | 'ProductVariant') {
-  const match = new RegExp(`^gid://shopify/${resource}/([1-9]\\d*)$`).exec(id);
-  if (!match) throw new Error('未能读取所选商品，请重新选择。');
-  return match[1];
-}
-function uniqueIds(ids: string[]) {
-  if (ids.some(id => !/^[1-9]\d*$/.test(id))) throw new Error('商品 ID 格式不正确，请重新选择。');
-  return [...new Set(ids)];
-}
 export const loadSettings = () => query<Settings>(loadConfigQuery);
+// 已切换店铺读取页面管理配置，未切换店铺使用各自的旧活动配置。
 export function initialConfig(settings: Settings): StoredConfig {
   if (settings.shop.mode) {
     if (settings.shop.mode.value !== 'managed' || !settings.shop.config) throw new Error('活动配置不可用，请检查店铺配置');
@@ -61,111 +27,112 @@ export function initialConfig(settings: Settings): StoredConfig {
   const value = (legacy as Record<string, unknown>)[settings.shop.myshopifyDomain];
   return value ? parseConfig(value) : { version: 1, campaigns: [] };
 }
+// 将规格 ID 去重后分批读取，返回按规格 ID 索引的详情。
 export async function loadVariants(ids: string[]): Promise<Record<string, Variant>> {
   const unique = uniqueIds(ids);
   const variants: Record<string, Variant> = {};
   for (let offset = 0; offset < unique.length; offset += 100) {
-    const result = await query<{ nodes: (VariantNode | null)[] }>(variantsQuery, {
+    const result = await query<Response.Variants>(variantsQuery, {
       ids: unique.slice(offset, offset + 100).map(id => `gid://shopify/ProductVariant/${id}`),
     });
-    for (const node of result.nodes) if (node?.id) variants[numericId(node.id, 'ProductVariant')] = variantImage(node);
+    for (const node of result.nodes) if (node?.id) variants[resourceId(node.id, 'ProductVariant')] = variantImage(node);
   }
   return variants;
 }
+function variantImage(node: VariantNode): Variant {
+  const { media, ...variant } = node;
+  return { ...variant, image: media?.nodes.find(item => item.image)?.image ?? null };
+}
+
+// 读取单件商品的完整规格，分页异常或数量变化时拒绝返回部分结果。
+async function loadProduct(id: string): Promise<Product | undefined> {
+  let after: string | null = null;
+  let product: Product | undefined;
+  const seen = new Set<string>();
+  do {
+    const result: Response.ProductPage = await query(productQuery, { id: `gid://shopify/Product/${id}`, after });
+    const node = result.product;
+    if (!node) return;
+    product ??= { id: node.id, title: node.title, featuredImage: node.featuredMedia?.image ?? null, variantsCount: node.variantsCount.count, variants: [] };
+    for (const variant of node.variants.nodes) {
+      if (!seen.has(variant.id)) product.variants.push(variantImage({ ...variant, product: { id: node.id, title: node.title } }));
+      seen.add(variant.id);
+    }
+    const page = node.variants.pageInfo;
+    if (!page.hasNextPage) break;
+    if (!page.endCursor || page.endCursor === after) throw new Error(`读取「${node.title}」的完整规格失败，请重试。`);
+    after = page.endCursor;
+  } while (true);
+  if (product.variants.length !== product.variantsCount) throw new Error(`「${product.title}」的规格在读取时发生变化，请重新加载。`);
+  return product;
+}
+
+// 每批最多 4 件商品并发，单件商品的规格按游标依次读取。
 export async function loadProducts(ids: string[]): Promise<Record<string, Product>> {
   const products: Record<string, Product> = {};
   const unique = uniqueIds(ids);
-  // 分批并发读取；每件商品的变体独立分页，不能把前 100 个误当作全部规格。
   for (let offset = 0; offset < unique.length; offset += 4) {
     await Promise.all(unique.slice(offset, offset + 4).map(async id => {
-      let after: string | null = null;
-      let product: Product | undefined;
-      const seen = new Set<string>();
-      do {
-        const result: { product: { id: string; title: string; featuredMedia: { image?: ProductImage } | null; variantsCount: { count: number }; variants: { nodes: Omit<VariantNode, 'product'>[]; pageInfo: PageInfo } } | null } = await query(productQuery, { id: `gid://shopify/Product/${id}`, after });
-        const node = result.product;
-        if (!node) return;
-        product ??= { id: node.id, title: node.title, featuredImage: node.featuredMedia?.image ?? null, variantsCount: node.variantsCount.count, variants: [] };
-        for (const variant of node.variants.nodes) {
-          if (!seen.has(variant.id)) product.variants.push(variantImage({ ...variant, product: { id: node.id, title: node.title } }));
-          seen.add(variant.id);
-        }
-        const page = node.variants.pageInfo;
-        if (!page.hasNextPage) break;
-        if (!page.endCursor || page.endCursor === after) throw new Error(`读取「${node.title}」的完整规格失败，请重试。`);
-        after = page.endCursor;
-      } while (true);
-      if (product.variants.length !== product.variantsCount) throw new Error(`「${product.title}」的规格在读取时发生变化，请重新加载。`);
-      products[id] = product;
+      const product = await loadProduct(id);
+      if (product) products[id] = product;
     }));
   }
   return products;
 }
 function picker() {
   // 当前 RC 的 AppHomeApi 漏了声明，复用相同 SDK 的 Resource Picker 类型。
-  const app = shopify as typeof shopify & Pick<StandardRenderingExtensionApi<'admin.app.home.render'>, 'resourcePicker'>;
+  const app = shopify as typeof shopify & ResourcePickerApi;
   if (typeof app.resourcePicker !== 'function') throw new Error('商品选择器暂时不可用，请刷新页面后重试。');
   return app;
 }
-export async function pickProducts(initial: PickerProductSelection[], search?: string) {
-  const app = picker();
-  const initialIds = uniqueIds(initial.map(item => item.productId));
-  const ranges = initial.map(item => ({
-    productId: item.productId,
-    variantIds: item.variantIds === undefined ? undefined : uniqueIds(item.variantIds),
-    excludedVariantIds: item.excludedVariantIds === undefined ? undefined : uniqueIds(item.excludedVariantIds),
-  }));
-  const current = await loadProducts(initialIds);
-  if (initialIds.some(id => !current[id])) throw new Error('部分商品已删除或不可访问，请先移除对应商品后重新选择。');
-  const selectionIds = ranges.map(item => {
-    const allIds = current[item.productId].variants.map(variant => numericId(variant.id, 'ProductVariant'));
-    // 整款范围每次从最新规格计算；legacy 和赠品只回显明确选择的规格。
-    const variantIds = item.excludedVariantIds !== undefined
-      ? allIds.filter(id => !item.excludedVariantIds!.includes(id))
-      : item.variantIds ?? allIds;
-    if (variantIds.some(id => !allIds.includes(id))) throw new Error('部分规格已删除或不可访问，请先移除对应规格后重新选择。');
-    return { id: `gid://shopify/Product/${item.productId}`, variants: variantIds.map(id => ({ id: `gid://shopify/ProductVariant/${id}` })) };
-  });
-  const picked = await app.resourcePicker({
-    type: 'product', action: 'select', multiple: true, filter: { variants: true },
-    selectionIds,
-    ...(search ? { query: search } : {}),
-  });
-  if (picked === undefined) return;
-  const ids: string[] = [];
-  const selection: Record<string, string[]> = {};
-  for (const item of picked) {
-    const id = numericId(item.id, 'Product');
-    if (!('variants' in item) || !Array.isArray(item.variants) || !item.variants.length) throw new Error('未能读取所选规格，请重新选择。');
-    const variantIds = item.variants.map(variant => numericId(variant.id ?? '', 'ProductVariant'));
-    if (!selection[id]) ids.push(id);
-    selection[id] = [...new Set([...(selection[id] ?? []), ...variantIds])];
-  }
-  const products = await loadProducts(ids);
-  if (ids.some(id => !products[id])) throw new Error('部分商品已删除或不可访问，请重新选择。');
-  for (const id of ids) {
-    const available = new Set(products[id].variants.map(variant => numericId(variant.id, 'ProductVariant')));
-    if (selection[id].some(variantId => !available.has(variantId))) throw new Error('部分所选规格已删除或不可访问，请重新选择。');
-  }
-  return { ids, products, selection };
+// 将规格弹窗的 Handle 搜索转换为 product_id，其他搜索原样传递。
+async function pickerSearch(search: string | undefined, variantPicker: boolean) {
+  if (!variantPicker || !isHandleSearch(search)) return search;
+  const result = await query<Response.ProductSearch>(findProductQuery, { query: search });
+  const product = result.products.nodes[0];
+  if (!product) throw new Error('未找到该 Handle 对应的产品，请检查后重新搜索。');
+  return `product_id:${resourceId(product.id, 'Product')}`;
 }
 
+// 打开前校验原有选择，确认后读回最新规格和库存，再返回可应用的结果。
+export async function pickProducts(initial: PickerProductSelection[], search?: string, options: PickerOptions = {}): Promise<PickerResult | undefined> {
+  const app = picker();
+  const variantPicker = Boolean(options.singleVariantOnly || options.inStockOnly);
+  const initialIds = uniqueIds(initial.map(item => item.productId));
+  const ranges = pickerRanges(initial);
+  const selectionIds = initialSelection(ranges, await loadProducts(initialIds), options);
+  const variantIds = variantSelection(selectionIds, options);
+  const query = await pickerSearch(search, variantPicker);
+  const picked = await app.resourcePicker({
+    type: variantPicker ? 'variant' : 'product', action: 'select', multiple: !options.singleVariantOnly,
+    filter: variantPicker ? (options.inStockOnly ? { query: 'inventory_quantity:>0' } : {}) : { variants: true },
+    selectionIds: variantPicker ? variantIds : selectionIds,
+    ...(query ? { query } : {}),
+  });
+  if (picked === undefined) return;
+  const selection = normalizeSelection(picked, variantPicker, options);
+  const result = { ...selection, products: await loadProducts(selection.ids) };
+  validateSelection(result, options);
+  return result;
+}
+
+// 检查或补齐商城与 App 共享的配置字段，保留 merchant-owned namespace。
 async function ensureDefinitions(settings: Settings) {
-  // 商城与 App 共享这些字段，因此保留 merchant-owned namespace。
   for (const [key, type, name] of [['mode', 'single_line_text_field', 'BOGO 配置来源'], ['campaigns', 'json', 'BOGO 买赠活动']]) {
     const existing = settings.metafieldDefinitions.nodes.find(definition => definition.key === key);
     if (existing) {
       if (existing.type.name !== type || existing.access.storefront !== 'PUBLIC_READ') throw new Error(`店铺 ${key} 字段类型或商城读取权限不正确，请修复后重试`);
-    } else {
-      const result = await query<{ metafieldDefinitionCreate: { userErrors: UserError[] } }>(defineConfigMutation, {
-        definition: { name, namespace: 'nuphy_bogo', key, type, ownerType: 'SHOP', access: { storefront: 'PUBLIC_READ' } },
-      });
-      checkErrors(result.metafieldDefinitionCreate.userErrors);
+      continue;
     }
+    const result = await query<Response.DefinitionCreate>(defineConfigMutation, {
+      definition: { name, namespace: 'nuphy_bogo', key, type, ownerType: 'SHOP', access: { storefront: 'PUBLIC_READ' } },
+    });
+    checkErrors(result.metafieldDefinitionCreate.userErrors);
   }
 }
+// 携带读取时的摘要同时保存模式与活动配置，防止覆盖并发修改。
 async function publishSettings(settings: Settings, config: StoredConfig): Promise<Settings> {
-  const result = await query<{ metafieldsSet: { userErrors: UserError[]; metafields: { key: string; compareDigest: string }[] } }>(saveConfigMutation, {
+  const result = await query<Response.SettingsSave>(saveConfigMutation, {
     metafields: [
       { ownerId: settings.shop.id, namespace: 'nuphy_bogo', key: 'mode', type: 'single_line_text_field', value: 'managed', compareDigest: settings.shop.mode?.compareDigest ?? null },
       { ownerId: settings.shop.id, namespace: 'nuphy_bogo', key: 'campaigns', type: 'json', value: JSON.stringify(config), compareDigest: settings.shop.config?.compareDigest ?? null },
@@ -177,6 +144,7 @@ async function publishSettings(settings: Settings, config: StoredConfig): Promis
   if (!mode || !campaigns) throw new Error('保存结果不完整，请重新加载确认');
   return { ...settings, warnings: undefined, shop: { ...settings.shop, mode: { ...mode, value: 'managed' }, config: { ...campaigns, jsonValue: config } } };
 }
+// 批量导入仅接受未绑定原生折扣、未设置排期的活动。
 export async function saveSettings(settings: Settings, value: StoredConfig): Promise<Settings> {
   const config = parseConfig(value);
   const latest = await loadSettings();
@@ -186,30 +154,14 @@ export async function saveSettings(settings: Settings, value: StoredConfig): Pro
   await ensureDefinitions(latest);
   return publishSettings(settings, config);
 }
-function canonical(value: unknown): string {
-  if (value === undefined) return 'undefined';
-  if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
-  if (value && typeof value === 'object') return `{${Object.entries(value).filter(([, item]) => item !== undefined).sort(([a], [b]) => a.localeCompare(b)).map(([key, item]) => `${JSON.stringify(key)}:${canonical(item)}`).join(',')}}`;
-  return JSON.stringify(value);
-}
-function same(a: unknown, b: unknown) { return canonical(a) === canonical(b); }
 async function loadDiscount(id: string) {
-  return (await query<{ discountNode: DiscountNode | null }>(discountQuery, { id })).discountNode;
+  return (await query<Response.Discount>(discountQuery, { id })).discountNode;
 }
-function isBound(node: DiscountNode | null, campaignId: string, token: string) {
-  return node?.campaignBinding?.jsonValue?.campaignId === campaignId && node.campaignBinding.jsonValue.bindingToken === token && !!node.discount.startsAt;
-}
-type DiscountPreparation = { shopId: string; campaignId: string; token: string; attempted: boolean; owner?: NativeDiscount; startsAt: string };
-function matchesPreparation(node: DiscountNode | null, campaign: StoredCampaign, preparation: DiscountPreparation) {
-  if (!node || !node.discount.startsAt || !isBound(node, campaign.id, preparation.token)) return false;
-  return Date.parse(node.discount.startsAt) === Date.parse(preparation.startsAt)
-    && (node.discount.endsAt ? Date.parse(node.discount.endsAt) : null) === (campaign.endsAt ? Date.parse(campaign.endsAt) : null)
-    && (node.discount.status !== 'EXPIRED' || Boolean(node.discount.endsAt && Date.parse(node.discount.endsAt) <= Date.now()));
-}
+// 分页查回仍符合本次准备条件的折扣，恢复结果不确定的创建请求。
 async function findPrepared(campaign: StoredCampaign, preparation: DiscountPreparation): Promise<NativeDiscount | undefined> {
   let after: string | null = null;
   do {
-    const result: { discountNodes: { nodes: DiscountNode[]; pageInfo: PageInfo } } = await query(findDiscountsQuery, { after });
+    const result: Response.Discounts = await query<Response.Discounts>(findDiscountsQuery, { after });
     const found = result.discountNodes.nodes.find(node => matchesPreparation(node, campaign, preparation));
     if (found) return { id: found.id, token: preparation.token };
     const page = result.discountNodes.pageInfo;
@@ -230,6 +182,36 @@ function newBindingToken() {
   const runtime = globalThis as unknown as { crypto?: { randomUUID?: () => string } };
   return runtime.crypto?.randomUUID?.() ?? `bogo-${Date.now().toString(36)}-${Math.random().toString(36).slice(2).padEnd(16, '0')}-${Math.random().toString(36).slice(2).padEnd(16, '0')}`;
 }
+async function ensureDiscountDefinition() {
+  const { metafieldDefinitions } = await query<Response.DiscountDefinition>(discountDefinitionQuery);
+  const existing = metafieldDefinitions.nodes[0];
+  if (existing) {
+    if (existing.type.name !== 'json') throw new Error('折扣活动绑定字段类型不正确，请检查配置。');
+    return;
+  }
+  const result = await query<Response.DefinitionCreate>(defineConfigMutation, {
+    definition: { name: 'BOGO 活动绑定', namespace: 'nuphy_bogo', key: 'campaign', type: 'json', ownerType: 'DISCOUNT' },
+  });
+  checkErrors(result.metafieldDefinitionCreate.userErrors);
+}
+
+// 创建折扣时一并写入活动绑定，避免新 owner 暂时落入旧活动规则。
+async function createDiscountOwner(campaign: StoredCampaign, preparation: DiscountPreparation, previous: DiscountNode | null): Promise<NativeDiscount> {
+  const result = await query<Response.DiscountCreate>(createDiscountMutation, {
+    discount: {
+      title: campaign.name || 'BOGO 买赠活动', functionHandle: 'nuphy-free-gift-discount', discountClasses: ['PRODUCT'],
+      startsAt: preparation.startsAt, endsAt: campaign.endsAt ?? null,
+      combinesWith: { productDiscounts: true, orderDiscounts: previous?.discount.combinesWith?.orderDiscounts ?? false, shippingDiscounts: previous?.discount.combinesWith?.shippingDiscounts ?? false },
+      metafields: [{ namespace: 'nuphy_bogo', key: 'campaign', type: 'json', value: JSON.stringify({ campaignId: campaign.id, bindingToken: preparation.token }) }],
+    },
+  });
+  checkErrors(result.discountAutomaticAppCreate.userErrors);
+  const id = result.discountAutomaticAppCreate.automaticAppDiscount?.discountId;
+  if (!id) throw new Error('Shopify 未返回折扣 ID，请重试确认创建结果。');
+  return { id, token: preparation.token };
+}
+
+// 为同一草稿复用有效的准备记录，必要时创建新的原生折扣。
 async function prepareDiscount(shopId: string, campaign: StoredCampaign, base: StoredCampaign | undefined, previous: DiscountNode | null) {
   const key = canonical([shopId, base, campaign]);
   let preparation = preparations.get(key);
@@ -254,28 +236,10 @@ async function prepareDiscount(shopId: string, campaign: StoredCampaign, base: S
     // 搜索结果可能尚未包含上次创建。换 token 后再准备，避免两份 owner 共用有效绑定。
     preparation.token = newBindingToken();
   }
-  const definitions = await query<{ metafieldDefinitions: { nodes: { type: { name: string } }[] } }>(discountDefinitionQuery);
-  if (!definitions.metafieldDefinitions.nodes.length) {
-    const result = await query<{ metafieldDefinitionCreate: { userErrors: UserError[] } }>(defineConfigMutation, {
-      definition: { name: 'BOGO 活动绑定', namespace: 'nuphy_bogo', key: 'campaign', type: 'json', ownerType: 'DISCOUNT' },
-    });
-    checkErrors(result.metafieldDefinitionCreate.userErrors);
-  } else if (definitions.metafieldDefinitions.nodes[0].type.name !== 'json') throw new Error('折扣活动绑定字段类型不正确，请检查配置。');
+  await ensureDiscountDefinition();
   preparation.attempted = true;
   try {
-    const result = await query<{ discountAutomaticAppCreate: { automaticAppDiscount: { discountId: string } | null; userErrors: UserError[] } }>(createDiscountMutation, {
-      discount: {
-        title: campaign.name || 'BOGO 买赠活动', functionHandle: 'nuphy-free-gift-discount', discountClasses: ['PRODUCT'],
-        startsAt: preparation.startsAt, endsAt: campaign.endsAt ?? null,
-        combinesWith: { productDiscounts: true, orderDiscounts: previous?.discount.combinesWith?.orderDiscounts ?? false, shippingDiscounts: previous?.discount.combinesWith?.shippingDiscounts ?? false },
-        // 必须随 owner 一起创建，避免新折扣在尚无绑定时走旧活动分支。
-        metafields: [{ namespace: 'nuphy_bogo', key: 'campaign', type: 'json', value: JSON.stringify({ campaignId: campaign.id, bindingToken: preparation.token }) }],
-      },
-    });
-    checkErrors(result.discountAutomaticAppCreate.userErrors);
-    const id = result.discountAutomaticAppCreate.automaticAppDiscount?.discountId;
-    if (!id) throw new Error('Shopify 未返回折扣 ID，请重试确认创建结果。');
-    preparation.owner = { id, token: preparation.token };
+    preparation.owner = await createDiscountOwner(campaign, preparation, previous);
     return { ...preparation.owner };
   } catch (error) {
     if (error instanceof MutationError) { preparations.delete(key); throw error; }
@@ -284,18 +248,42 @@ async function prepareDiscount(shopId: string, campaign: StoredCampaign, base: S
     throw new Error(`未能确认折扣准备结果；活动配置未发布，请保留输入后重试。${error instanceof Error ? error.message : ''}`);
   }
 }
+// 停用前核对活动绑定，失败只返回警告，不把已保存的配置误报为失败。
 async function retireDiscount(owner: NativeDiscount, campaignId: string): Promise<string | undefined> {
   try {
     const node = await loadDiscount(owner.id);
     if (!node) return;
     if (!isBound(node, campaignId, owner.token)) return '活动已保存，旧折扣绑定不匹配，未自动停用，请检查 Shopify 折扣。';
     if (node.discount.status === 'EXPIRED') return;
-    const result = await query<{ discountAutomaticDeactivate: { userErrors: UserError[] } }>(deactivateDiscountMutation, { id: owner.id });
+    const result = await query<Response.DiscountDeactivate>(deactivateDiscountMutation, { id: owner.id });
     checkErrors(result.discountAutomaticDeactivate.userErrors);
   } catch {
     return '活动已保存，旧折扣暂未停用；旧绑定已失效，不会重复发放，请稍后检查 Shopify 折扣。';
   }
 }
+// 检查旧绑定，为启用的草稿复用或准备对应的原生折扣。
+async function prepareCampaignDiscount(shopId: string, current: StoredCampaign | undefined, draft: StoredCampaign | null) {
+  const previous = current?.nativeDiscount ? await loadDiscount(current.nativeDiscount.id) : null;
+  if (current?.nativeDiscount && previous && !isBound(previous, current.id, current.nativeDiscount.token)) {
+    throw new Error('活动的 Shopify 折扣绑定已变化，请重新加载后检查。');
+  }
+  if (!draft?.enabled) return draft;
+  const nativeDiscount = canReuseDiscount(current, draft, previous)
+    ? current!.nativeDiscount!
+    : await prepareDiscount(shopId, draft, current, previous);
+  return { ...draft, nativeDiscount };
+}
+
+// 配置发布后，仅停用已不再被当前活动使用的旧折扣。
+async function retirePreviousDiscount(settings: Settings, previous: StoredCampaign | undefined, current: StoredCampaign | null | undefined) {
+  const owner = previous?.nativeDiscount;
+  if (!owner || (current?.enabled && current.nativeDiscount?.id === owner.id)) return settings;
+  const warning = await retireDiscount(owner, previous!.id);
+  if (warning) settings.warnings = [warning];
+  return settings;
+}
+
+// 逐个保存活动：校验最新配置、准备折扣、发布成功后处理旧折扣。
 export async function saveCampaign(settings: Settings, baseCampaign: StoredCampaign | undefined, draftCampaign: StoredCampaign | null): Promise<Settings> {
   if (!baseCampaign && !draftCampaign) throw new Error('没有可以保存的活动。');
   if (baseCampaign && draftCampaign && baseCampaign.id !== draftCampaign.id) throw new Error('不能修改活动 ID。');
@@ -311,26 +299,12 @@ export async function saveCampaign(settings: Settings, baseCampaign: StoredCampa
     if (uncertainPublications.has(publicationKey) && same(current, uncertainPublications.get(publicationKey) ?? undefined)) {
       uncertainPublications.delete(publicationKey);
       clearPreparations(settings.shop.id, id);
-      if (baseCampaign?.nativeDiscount && (!current?.enabled || current.nativeDiscount?.id !== baseCampaign.nativeDiscount.id)) {
-        const warning = await retireDiscount(baseCampaign.nativeDiscount, id);
-        if (warning) latest.warnings = [warning];
-      }
-      return latest;
+      return await retirePreviousDiscount(latest, baseCampaign, current);
     }
     if (!same(current, baseCampaign)) throw new Error('这个活动已被其他人修改。请重新加载后再编辑；其他活动的修改已保留。');
     let draft = draftCampaign ? parseConfig({ version: 1, campaigns: [{ ...draftCampaign, nativeDiscount: current?.nativeDiscount }] }).campaigns[0] : null;
     await ensureDefinitions(latest);
-    const previous = current?.nativeDiscount ? await loadDiscount(current.nativeDiscount.id) : null;
-    if (current?.nativeDiscount && previous && !isBound(previous, id, current.nativeDiscount.token)) throw new Error('活动的 Shopify 折扣绑定已变化，请重新加载后检查。');
-    if (draft?.enabled) {
-      const endedOnSchedule = previous?.discount.endsAt && Date.parse(previous.discount.endsAt) <= Date.now();
-      const reusable = current?.enabled && current.nativeDiscount && previous && (previous.discount.status !== 'EXPIRED' || endedOnSchedule)
-        && same(current.name, draft.name)
-        && same(current.startsAt, draft.startsAt) && same(current.endsAt, draft.endsAt)
-        && (!draft.startsAt || Date.parse(previous.discount.startsAt!) === Date.parse(draft.startsAt))
-        && (previous.discount.endsAt ? Date.parse(previous.discount.endsAt) : null) === (draft.endsAt ? Date.parse(draft.endsAt) : null);
-      draft = { ...draft, nativeDiscount: reusable ? current.nativeDiscount : await prepareDiscount(settings.shop.id, draft, current, previous) };
-    }
+    draft = await prepareCampaignDiscount(settings.shop.id, current, draft);
     const next = parseConfig({ version: 1, campaigns: current
       ? config.campaigns.flatMap(campaign => campaign.id === id ? (draft ? [draft] : []) : [campaign])
       : [...config.campaigns, draft!] });
@@ -347,12 +321,9 @@ export async function saveCampaign(settings: Settings, baseCampaign: StoredCampa
     }
     uncertainPublications.delete(publicationKey);
     clearPreparations(settings.shop.id, id);
-    if (current?.nativeDiscount && (!draft?.enabled || draft.nativeDiscount?.id !== current.nativeDiscount.id)) {
-      const warning = await retireDiscount(current.nativeDiscount, id);
-      if (warning) saved.warnings = [warning];
-    }
-    return saved;
+    return await retirePreviousDiscount(saved, current, draft);
   } finally {
+    // 等旧折扣处理结束后再释放锁，避免同店保存交错。
     savingShops.delete(settings.shop.id);
   }
 }

@@ -17,6 +17,8 @@ export interface StoredCampaign {
 }
 export interface StoredConfig { version: 1; campaigns: StoredCampaign[] }
 
+export const MAX_CONFIG_BYTES = 10000;
+
 function record(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -52,7 +54,7 @@ export function parseConfig(value: unknown): StoredConfig {
   if (!record(value) || value.version !== 1 || !Array.isArray(value.campaigns)) {
     throw new Error('活动配置格式或版本不正确');
   }
-  if (configBytes(JSON.stringify(value)) > 10000) throw new Error('活动配置超过容量，请减少不再使用的活动或商品变体');
+  if (configBytes(JSON.stringify(value)) > MAX_CONFIG_BYTES) throw new Error('活动配置超过容量，请减少不再使用的活动或商品变体');
   const ids = new Set<string>();
   const campaigns = value.campaigns.map((campaign: unknown): StoredCampaign => {
     if (!record(campaign)

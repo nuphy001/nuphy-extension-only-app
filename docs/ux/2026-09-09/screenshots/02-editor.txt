@@ -1,7 +1,0 @@
-Browser tab: 1596119630, Title: "61style · BOGO 买赠活动 · Shopify Plus", URL: "https://admin.shopify.com/store/61style/apps/nuphy-local-dev".
-The following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
-Removed element IDs: 184
-+															232 text •
-~						132 button nuphy-local-dev 2417276459@qq.com 已更新：10 分钟前 清除开发预览 ···
-~							135 text 已更新：10 分钟前
-The focused UI element is 221 pop up button (collapsed, settable) 赠送数量, Value: 买几个主商品，就送几个赠品, ID: select, Secondary Actions: Expand

@@ -1,3 +1,0 @@
-Browser tab: 1596119630, Title: "61style · BOGO 买赠活动 · Shopify Plus", URL: "https://admin.shopify.com/store/61style/apps/nuphy-local-dev".
-There has been no change in the accessibility tree.
-The focused UI element is 0 AXWebArea 61style · BOGO 买赠活动 · Shopify Plus, URL: admin.shopify.com/store/61style/apps/nuphy-local-dev
