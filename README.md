@@ -146,7 +146,7 @@ pnpm build:production
 
    终端应显示组织 `Shenzhen NuPhy Technology Co., Ltd.`、应用 `NuPhy Bonus`。核对变更后确认发布，看到 `New version released to users.` 才表示完成。发布使用当前工作区内容，无需先提交或推送 Git，也无需启动本地开发服务器或隧道。`--no-release` 仅创建未发布版本。[CLI 发布说明](https://shopify.dev/docs/api/shopify-cli/app/app-deploy)
 
-3. 打开 [NuPhyX 后台 → NuPhy Bonus](https://admin.shopify.com/store/nuphyx/apps/nuphy-functions-development)。已安装应用无需重装；若 Shopify 提示新增权限，核对后更新授权。当前配置权限为 `read_products,write_discounts`。
+3. 打开 [NuPhyX 后台 → NuPhy Bonus](https://admin.shopify.com/store/nuphyx/apps/nuphy-bonus)。已安装应用无需重装；若 Shopify 提示新增权限，核对后更新授权。当前配置权限为 `read_products,write_discounts`。
 4. 验证活动列表、创建活动、商品及赠品选择、取消草稿。放弃验证草稿；涉及折扣或结账行为的改动，还需验证对应购物车、结账流程。
 
 首次安装到获准使用该应用的其他店铺时，在 App distribution 中使用 Custom distribution，填写目标店铺域名并生成安装链接，再打开链接授权。[自定义分发说明](https://shopify.dev/docs/apps/launch/distribution/select-distribution-method)
@@ -159,4 +159,6 @@ pnpm build:production
 - 完成新增“编辑折扣”权限授权后，已在 NuPhyX 验证活动列表、商品规格回填、赠品单规格及库存筛选入口、放弃草稿。现有 3 个活动未改动，未验证购物车或结账折扣。
 - [nuphy-bonus-21](https://dev.shopify.com/dashboard/15531373/apps/393654435841/versions/1129074294785)：将 TOML 的 `name` 改为 `NuPhy Bonus` 后重新校验、构建、发布，后台导航和标题已确认新名称。此次只改应用名，未重跑业务测试。
 
-应用显示名来自 TOML 的 `name`；`--version` 只设置发布版本标签。后续发布可省略该参数，由 CLI 命名；若自行指定，使用新的唯一标签。
+应用显示名来自 TOML 的 `name`，后台地址中的 `nuphy-bonus` 来自 `handle`；修改显示名不会自动修改网址。修改这两个字段后都需发布才能生效，修改 `handle` 后还需更新旧后台链接。[应用配置说明](https://shopify.dev/docs/apps/build/cli-for-apps/app-configuration#global)
+
+`--version` 只设置发布版本标签。后续发布可省略该参数，由 CLI 命名；若自行指定，使用新的唯一标签。

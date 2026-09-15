@@ -1,7 +1,8 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "4ccd118df9fc40c42d865fd151b0ec2a"
-name = "nuphy-local-dev"
+name = "NuPhy Bonus"
+handle = "nuphy-bonus"
 application_url = "https://shopify.dev/apps/default-app-home"
 embedded = true
 

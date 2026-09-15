@@ -1,7 +1,6 @@
 {
   "name": "nuphy-extension-only-app",
   "version": "1.0.0",
-  "license": "UNLICENSED",
   "scripts": {
     "shopify": "shopify",
     "build": "node scripts/run-shopify-environment.mjs development app build",
