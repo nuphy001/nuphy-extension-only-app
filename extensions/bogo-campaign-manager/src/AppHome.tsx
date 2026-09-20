@@ -2,19 +2,7 @@ import '@shopify/ui-extensions/preact';
 import { render } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { configBytes, type StoredCampaign, type StoredConfig } from '../../nuphy-free-gift-discount/src/configuration';
-import {
-  createFreeGiftDiscount,
-  initialConfig,
-  loadFreeGiftDiscount,
-  loadProductByHandle,
-  loadSettings,
-  loadVariants,
-  saveSettings,
-  searchVariants,
-  type FreeGiftDiscountStatus,
-  type Settings,
-  type Variant,
-} from './api';
+import { initialConfig, loadProductByHandle, loadSettings, loadVariants, saveSettings, searchVariants, type Settings, type Variant } from './api';
 
 export default async () => { render(<App />, document.body); };
 const empty: StoredConfig = { version: 1, campaigns: [] };
@@ -41,9 +29,6 @@ function App() {
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [removeId, setRemoveId] = useState<string | null>(null);
   const [pickerRole, setPickerRole] = useState<'trigger' | 'gift' | null>(null);
-  const [discountStatus, setDiscountStatus] = useState<FreeGiftDiscountStatus | null>(null);
-  const [discountBusy, setDiscountBusy] = useState(true);
-  const [discountError, setDiscountError] = useState('');
   const pickerModal = useRef<HTMLElementTagNameMap['s-modal'] | null>(null);
   const dirty = JSON.stringify(config) !== JSON.stringify(saved);
   const selected = config.campaigns.find(campaign => campaign.id === selectedId);
@@ -74,16 +59,6 @@ function App() {
     return () => { cancelled = true; };
   }, [loadAttempt]);
 
-  useEffect(() => {
-    let cancelled = false;
-    setDiscountBusy(true); setDiscountError('');
-    loadFreeGiftDiscount()
-      .then(status => { if (!cancelled) setDiscountStatus(status); })
-      .catch(cause => { if (!cancelled) setDiscountError(errorMessage(cause)); })
-      .finally(() => { if (!cancelled) setDiscountBusy(false); });
-    return () => { cancelled = true; };
-  }, [loadAttempt]);
-
   function update(id: string, patch: Partial<StoredCampaign>) {
     setConfig(previous => ({ ...previous, campaigns: previous.campaigns.map(campaign => campaign.id === id ? { ...campaign, ...patch } : campaign) }));
     setNotice('');
@@ -109,16 +84,6 @@ function App() {
       setError(errorMessage(cause));
     } finally { setBusy(false); }
   }
-  async function createDiscount() {
-    setDiscountBusy(true); setDiscountError(''); setNotice('');
-    try {
-      const status = await createFreeGiftDiscount();
-      setDiscountStatus(status);
-      setNotice(status.active ? 'Free Gift 自动折扣已创建并启用。' : `Free Gift 折扣已存在，当前状态：${status.status ?? '未知'}。`);
-    } catch (cause) {
-      setDiscountError(errorMessage(cause));
-    } finally { setDiscountBusy(false); }
-  }
   function names(ids: string[]) {
     const titles = [...new Set(ids.map(id => variants[id]?.product.title ?? `商品已删除或不可读取（${id}）`))];
     return titles.length ? `${titles.slice(0, 3).join('、')}${titles.length > 3 ? ` 等 ${titles.length} 款商品` : ''} · ${ids.length} 个变体` : '尚未选择';
@@ -134,16 +99,6 @@ function App() {
         {notice && <s-banner tone="success">{notice}</s-banner>}
         {busy && !settings && <s-section><s-spinner accessibilityLabel="正在加载活动" /></s-section>}
         {settings && <>
-          <s-section heading="赠品自动折扣">
-            <s-stack gap="base">
-              <s-paragraph>买赠活动需要启用 Free Gift 自动折扣，结账时赠品才会变成 0 元。</s-paragraph>
-              {discountBusy && <s-spinner accessibilityLabel="正在检查 Free Gift 自动折扣" />}
-              {discountError && <s-banner tone="critical">{discountError}</s-banner>}
-              {!discountBusy && discountStatus?.active && <s-banner tone="success">Free Gift 自动折扣已启用，并允许和商品、订单、运费折扣叠加。</s-banner>}
-              {!discountBusy && discountStatus?.exists && !discountStatus.active && <s-banner tone="warning">Free Gift 折扣已存在，但当前状态是 {discountStatus.status ?? '未知'}。请到“折扣”页面重新启用。</s-banner>}
-              {!discountBusy && discountStatus && !discountStatus.exists && <s-button variant="primary" onClick={() => void createDiscount()}>创建并启用 Free Gift 自动折扣</s-button>}
-            </s-stack>
-          </s-section>
           <s-section heading="活动管理">
             <s-stack gap="base">
               {/* <s-paragraph>当前店铺：{settings.shop.myshopifyDomain}</s-paragraph> */}

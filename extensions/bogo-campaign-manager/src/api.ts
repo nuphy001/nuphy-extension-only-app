@@ -6,8 +6,6 @@ import {
   variantsQuery,
   searchVariantsQuery,
   productByHandleQuery,
-  freeGiftDiscountStatusQuery,
-  createFreeGiftDiscountMutation,
 } from './queries';
 import legacy from './legacy-campaigns.json';
 
@@ -23,12 +21,6 @@ export type Variant = {
   media: { nodes: { image?: { url: string; altText: string | null } | null }[] };
 };
 type UserError = { message: string; code?: string };
-export type FreeGiftDiscountStatus = {
-  exists: boolean;
-  active: boolean;
-  discountId?: string;
-  status?: string;
-};
 
 async function query<T>(document: string, variables: Record<string, unknown> = {}): Promise<T> {
   const result = await shopify.query<T>(document, { variables, version: '2026-04' });
@@ -119,51 +111,4 @@ export async function loadProductByHandle(handle: string): Promise<Variant[] | n
   const product = result.products.nodes[0] ?? null;
   if (!product) return null;
   return (product.variants?.nodes ?? []).map(variant => ({ ...variant, product: { id: product.id, title: product.title } }));
-}
-
-type FunctionNode = { id: string; title: string; apiType: string };
-type AutomaticAppDiscount = {
-  __typename: 'DiscountAutomaticApp';
-  title: string;
-  status: string;
-  appDiscountType: { functionId: string; title: string };
-  combinesWith: { orderDiscounts: boolean; productDiscounts: boolean; shippingDiscounts: boolean };
-};
-type DiscountNode = { id: string; discount: AutomaticAppDiscount | { __typename: string } };
-
-export async function loadFreeGiftDiscount(): Promise<FreeGiftDiscountStatus> {
-  const result = await query<{
-    shopifyFunctions: { nodes: FunctionNode[] };
-    discountNodes: { nodes: DiscountNode[] };
-  }>(freeGiftDiscountStatusQuery);
-  const fn = result.shopifyFunctions.nodes.find(node => node.apiType === 'discount' && node.title === 'nuphy-free-gift-discount');
-  if (!fn) throw new Error('日本 App 中没有找到 nuphy-free-gift-discount，请先发布 Function');
-  const node = result.discountNodes.nodes.find(item => item.discount.__typename === 'DiscountAutomaticApp'
-    && (item.discount as AutomaticAppDiscount).appDiscountType.functionId === fn.id);
-  if (!node) return { exists: false, active: false };
-  const discount = node.discount as AutomaticAppDiscount;
-  return { exists: true, active: discount.status === 'ACTIVE', discountId: node.id, status: discount.status };
-}
-
-export async function createFreeGiftDiscount(): Promise<FreeGiftDiscountStatus> {
-  const current = await loadFreeGiftDiscount();
-  if (current.exists) return current;
-  const result = await query<{
-    discountAutomaticAppCreate: {
-      automaticAppDiscount: { discountId: string; title: string; status: string } | null;
-      userErrors: UserError[];
-    };
-  }>(createFreeGiftDiscountMutation, {
-    discount: {
-      title: 'Free Gift',
-      functionHandle: 'nuphy-free-gift-discount',
-      discountClasses: ['PRODUCT'],
-      startsAt: new Date().toISOString(),
-      combinesWith: { orderDiscounts: true, productDiscounts: true, shippingDiscounts: true },
-    },
-  });
-  checkErrors(result.discountAutomaticAppCreate.userErrors);
-  const created = result.discountAutomaticAppCreate.automaticAppDiscount;
-  if (!created) throw new Error('Shopify 没有返回新折扣，请刷新后确认');
-  return { exists: true, active: created.status === 'ACTIVE', discountId: created.discountId, status: created.status };
 }

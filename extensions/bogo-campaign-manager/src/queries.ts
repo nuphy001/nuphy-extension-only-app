@@ -42,30 +42,3 @@ export const productByHandleQuery = `query BogoProductByHandle($handle: String!)
     }
   }
 }`;
-
-export const freeGiftDiscountStatusQuery = `query FreeGiftDiscountStatus {
-  shopifyFunctions(first: 25) {
-    nodes { id title apiType }
-  }
-  discountNodes(first: 20, query: "title:Free Gift") {
-    nodes {
-      id
-      discount {
-        __typename
-        ... on DiscountAutomaticApp {
-          title
-          status
-          appDiscountType { functionId title }
-          combinesWith { orderDiscounts productDiscounts shippingDiscounts }
-        }
-      }
-    }
-  }
-}`;
-
-export const createFreeGiftDiscountMutation = `mutation CreateFreeGiftDiscount($discount: DiscountAutomaticAppInput!) {
-  discountAutomaticAppCreate(automaticAppDiscount: $discount) {
-    automaticAppDiscount { discountId title status }
-    userErrors { field message code }
-  }
-}`;
