@@ -178,6 +178,12 @@ Shopify Admin
 
 启用后，结账时 Shopify 引擎会对每个购物车自动调用本 Function，匹配的行价格归零。
 
+> **⚠ 折扣组合（Combinations）必须开启**：创建或编辑该折扣时，在「折扣组合」部分勾选
+> **产品折扣 / 订单折扣 / 运费折扣**。不勾选时，赠品折扣会阻止购物车叠加任何其他券。
+> Shopify 规则：两个折扣要叠加，**双方都要允许组合**——所以每个要叠加的折扣码那边，
+> 也要在它自己的「折扣组合」里勾选「产品折扣」（本 Function 输出的是产品级折扣）。
+> 官方规则见 [Shopify 折扣组合文档](https://help.shopify.com/manual/discounts/combining-discounts/discount-combinations)。
+
 ### 阶段 3：上线 Checklist
 
 按顺序执行，每步可独立回滚：

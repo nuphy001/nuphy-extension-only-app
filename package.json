@@ -4,19 +4,24 @@
   "license": "UNLICENSED",
   "scripts": {
     "shopify": "shopify",
-    "build": "node scripts/run-shopify-environment.mjs development app build",
-    "dev": "node scripts/run-shopify-environment.mjs development app dev",
-    "info": "shopify app info",
+    "build": "node scripts/run-shopify-environment.mjs development app build --config shopify.app.toml",
+    "dev": "node scripts/run-shopify-environment.mjs development app dev --config shopify.app.toml",
+    "info": "shopify app info --config shopify.app.toml",
     "generate": "shopify app generate",
-    "deploy": "node scripts/run-shopify-environment.mjs development app deploy",
-    "dev:test": "node scripts/run-shopify-environment.mjs development app dev",
+    "deploy": "node scripts/run-shopify-environment.mjs development app deploy --config shopify.app.toml",
+    "dev:test": "node scripts/run-shopify-environment.mjs development app dev --config shopify.app.toml",
+    "info:test": "shopify app info --config shopify.app.toml",
     "info:production": "shopify app info --config production",
-    "deploy:test": "node scripts/run-shopify-environment.mjs development app deploy",
+    "info:japan": "shopify app info --config japan",
+    "deploy:test": "node scripts/run-shopify-environment.mjs development app deploy --config shopify.app.toml",
     "deploy:production": "node scripts/run-shopify-environment.mjs production app deploy --config production",
-    "validate:test": "shopify app config validate --json",
+    "deploy:japan": "node scripts/run-shopify-environment.mjs production app deploy --config japan",
+    "validate:test": "shopify app config validate --config shopify.app.toml --json",
     "validate:production": "shopify app config validate --config production --json",
-    "build:test": "node scripts/run-shopify-environment.mjs development app build",
-    "build:production": "node scripts/run-shopify-environment.mjs production app build --config production"
+    "validate:japan": "shopify app config validate --config japan --json",
+    "build:test": "node scripts/run-shopify-environment.mjs development app build --config shopify.app.toml",
+    "build:production": "node scripts/run-shopify-environment.mjs production app build --config production",
+    "build:japan": "node scripts/run-shopify-environment.mjs production app build --config japan"
   },
   "trustedDependencies": [
     "@shopify/plugin-cloudflare"
