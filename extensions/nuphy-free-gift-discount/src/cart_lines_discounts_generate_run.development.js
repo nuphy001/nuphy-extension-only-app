@@ -1,5 +1,5 @@
 // @ts-check
-import { configuredCampaigns, matchesTrigger } from "./configuration";
+import { configuredCampaigns } from "./configuration";
 
 // NuPhyX test-store implementation. Replace campaign Variant GIDs with NuPhyX GIDs here.
 
@@ -94,29 +94,27 @@ const CAMPAIGNS = [
  */
 export function goboFreeGiftDiscountFunction(input) {
   // 未切换店铺继续使用原白名单；切换后只读取页面保存的配置。
-  const binding = input.discount?.campaignBinding;
-  const campaigns = input.shop?.promotionMode || binding
-    ? configuredCampaigns(input.shop?.promotionMode?.value, input.shop?.promotionConfig?.jsonValue, binding)
+  const campaigns = input.shop?.promotionMode
+    ? configuredCampaigns(input.shop.promotionMode.value, input.shop.promotionConfig?.jsonValue)
     : CAMPAIGNS;
   const CAMPAIGN_BY_ID = new Map(campaigns.map(c => [c.id, c]));
   const lines = input.cart.lines;
 
   // 单次遍历非赠品行：
-  //   nonGiftProductsByVariant —— 真实购买规格及所属产品，用于校验主品与排除项
+  //   nonGiftVariantIds   —— 「主品在 cart 内」校验（4b）用
   //   remainingByCampaign —— 每个 campaign 的免单配额 = 该 campaign 全部 trigger variant
   //                          在非赠品行内的 quantity 之和（即用户实际买了几个主品）
-  const nonGiftProductsByVariant = new Map();
+  const nonGiftVariantIds = new Set();
   const remainingByCampaign = new Map();
   for (const line of lines) {
     if (line.attribute?.value === GIFT_ROLE) continue;
     const variantId = line.merchandise?.id;
     if (!variantId) continue;
+    nonGiftVariantIds.add(variantId);
     const qty = line.quantity ?? 0;
     if (qty < 1) continue;
-    const productId = line.merchandise?.__typename === 'ProductVariant' ? line.merchandise.product?.id : undefined;
-    nonGiftProductsByVariant.set(variantId, productId);
     for (const campaign of campaigns) {
-      if (matchesTrigger(campaign, variantId, productId)) {
+      if (campaign.triggerVariantIds.has(variantId)) {
         remainingByCampaign.set(
           campaign.id,
           (remainingByCampaign.get(campaign.id) ?? 0) + qty,
@@ -142,10 +140,10 @@ export function goboFreeGiftDiscountFunction(input) {
 
     // 校验 4a：声明的主品 variant 必须是该 campaign 的合法 trigger
     const mainVariantId = line.mainVariantAttr?.value;
-    if (!mainVariantId || !matchesTrigger(campaign, mainVariantId, nonGiftProductsByVariant.get(mainVariantId))) continue;
+    if (!mainVariantId || !campaign.triggerVariantIds.has(mainVariantId)) continue;
 
     // 校验 4b：该主品必须真实存在于购物车的非赠品行（防只用赠品创建 cart）
-    if (!nonGiftProductsByVariant.has(mainVariantId)) continue;
+    if (!nonGiftVariantIds.has(mainVariantId)) continue;
 
     // 数量截断（1:1）：免单数 = min(赠品行数量, 该 campaign 剩余主品配额)。
     // 攻击者把赠品行 qty 改大、或主品买得少时，只对配额内的件数免单，其余原价。

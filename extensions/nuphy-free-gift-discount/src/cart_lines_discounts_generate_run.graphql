@@ -15,9 +15,6 @@ query CartLinesDiscountsGenerateRun {
     promotionMode: metafield(namespace: "nuphy_bogo", key: "mode") { value }
     promotionConfig: metafield(namespace: "nuphy_bogo", key: "campaigns") { jsonValue }
   }
-  discount {
-    campaignBinding: metafield(namespace: "nuphy_bogo", key: "campaign") { jsonValue }
-  }
   cart {
     lines {
       id
@@ -26,7 +23,6 @@ query CartLinesDiscountsGenerateRun {
         __typename
         ... on ProductVariant {
           id
-          product { id }
         }
       }
       attribute(key: "_promo_role") {

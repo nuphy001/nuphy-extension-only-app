@@ -11,7 +11,6 @@
     "deploy": "node scripts/run-shopify-environment.mjs development app deploy --config shopify.app.toml",
     "dev:test": "node scripts/run-shopify-environment.mjs development app dev --config shopify.app.toml",
     "info:test": "shopify app info --config shopify.app.toml",
-    "dev:61style": "node scripts/run-shopify-environment.mjs development app dev --config oooyi",
     "info:production": "shopify app info --config production",
     "info:japan": "shopify app info --config japan",
     "deploy:test": "node scripts/run-shopify-environment.mjs development app deploy --config shopify.app.toml",
@@ -31,8 +30,5 @@
   "private": true,
   "workspaces": [
     "extensions/*"
-  ],
-  "devDependencies": {
-    "@graphql-codegen/cli": "5.0.5"
-  }
+  ]
 }

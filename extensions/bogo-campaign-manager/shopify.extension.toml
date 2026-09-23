@@ -9,5 +9,5 @@ uid = "2d7c21b6-1c58-958c-6a7e-4ba9f64c1b765ddfa5af"
 
 # Only 1 target can be specified for each app-home extension
 [[extensions.targeting]]
-module = "./src/app-home.tsx"
+module = "./src/AppHome.tsx"
 target = "admin.app.home.render"
