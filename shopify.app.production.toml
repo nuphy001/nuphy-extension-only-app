@@ -2,7 +2,7 @@
 
 client_id = "1dfa5ac4c1e95115a158b547c4228540"
 name = "NuPhy Bonus"
-handle = "nuphy-bonus"
+# Keep the existing Shopify-assigned handle for this app; nuphy-bonus is already used by another linked app.
 application_url = "https://shopify.dev/apps/default-app-home"
 embedded = true
 
