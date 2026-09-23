@@ -1,6 +1,6 @@
 # Production configuration. Always select it explicitly with --config production.
 
-client_id = "1dfa5ac4c1e95115a158b547c4228540"
+client_id = "ea8902f04f9c9f1c5f6fd7ed25500b71"
 name = "nuphy-extension-only-app"
 application_url = "https://shopify.dev/apps/default-app-home"
 embedded = true
