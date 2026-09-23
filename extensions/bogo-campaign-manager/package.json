@@ -1,10 +1,13 @@
 {
   "name": "bogo-campaign-manager",
   "private": true,
+  "type": "module",
   "version": "1.0.0",
   "license": "UNLICENSED",
   "scripts": {
-    "check:types": "tsc --noEmit"
+    "check:types": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@preact/signals": "^2.11.2",
@@ -12,6 +15,7 @@
     "preact": "^10.10.x"
   },
   "devDependencies": {
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vitest": "2.1.9"
   }
 }
