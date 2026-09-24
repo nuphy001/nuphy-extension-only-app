@@ -2,13 +2,15 @@
 
 此扩展是当前 App（Client ID `872f6beb8dc7437845803205b98c1436`）的管理首页，使用 Shopify 托管的 `admin.app.home.render`。
 
-支持活动名称、主商品变体、赠品变体、赠送数量规则、排期、启停和移除。保存后，赠品折扣函数读取店铺的 `nuphy_bonus_v2` 配置，无需为新活动修改代码。
+支持活动名称、主商品变体、赠品变体、赠送数量规则、排期、启停和移除。当前源码保存到店铺的 `nuphy_bogo` 配置，赠品折扣函数读取同一命名空间，无需为新活动修改代码。
 
 首页按“活动名称、主商品、赠品、状态、操作”展示，主商品统计排除后的参与规格，赠品统计独立规格。商品未完整读取时显示“规格待确认”，长名称可通过提示查看全文；活动排期在编辑页查看。
 
-配置用量统计全部已保存活动的 UTF-8 字节数，不包含未提交的草稿。未导入的旧配置和新店不会标为“已保存”。页面提示与保存校验共用 10000 字节上限，依据是 [Shopify Functions 对单个 metafield 的读取限制](https://shopify.dev/docs/apps/build/metafields/metafield-limits)。
+配置用量统计全部已保存活动的 UTF-8 字节数，不包含未提交的草稿。页面提示与保存校验共用 10000 字节上限，依据是 [Shopify Functions 对单个 metafield 的读取限制](https://shopify.dev/docs/apps/build/metafields/metafield-limits)。
 
-当前 App 从页面管理活动。旧 App 的 `nuphy_bogo` 活动和折扣不会因为发布此 App 自动迁移。
+NuPhyX 此前用当前 App 创建的 3 个活动使用 `nuphy_bonus_v2`，店铺方已将其删除，相关原生折扣也已过期。本次不迁移这些活动。`nuphy_bogo` 中仍有旧活动配置；仅发布命名空间改动不会清除它们，管理页会读取该配置。
+
+2026-09-24，当前 App 版本 `nuphy-bonus-5` 已发布到当时唯一安装该 App 的 NuPhyX。本地 NuPhyX 无头店铺的四活动同车测试进入真实 Checkout：四件赠品均为 FREE，Air75 主品保留 20% 折扣，合计 $490.90。此前将 78 个规格跨字段重复表达导致 Function 指令预算故障；当前活动配置为 2863 字节，一次成功执行日志记录 9,257,536/11,000,000 条指令。无头前端的排期修复尚未部署，NuPhy 正式店也未发布当前 App。
 
 `legacy-campaigns.json` 是保留的数据文件；当前管理页不读取它。实际活动以店铺保存的配置为准。
 

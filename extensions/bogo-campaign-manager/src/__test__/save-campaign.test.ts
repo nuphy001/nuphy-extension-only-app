@@ -27,11 +27,12 @@ type DiscountOwner = {
 };
 type MockVariables = {
   id?: string;
+  ids?: string[];
   discount?: Pick<DiscountOwner['discount'], 'title' | 'startsAt' | 'endsAt' | 'combinesWith'> & { metafields: { namespace: string; value: string }[] };
   metafields?: { namespace: string; key: string; value: string; compareDigest: string | null }[];
 };
 let shopSequence = 0;
-function backend(campaigns: StoredCampaign[]) {
+function backend(campaigns: StoredCampaign[], variantProducts: Record<string, string> = {}) {
   const settings: MockSettings = {
     shop: { id: `gid://shopify/Shop/${++shopSequence}`, myshopifyDomain: 'example.myshopify.com', ianaTimezone: 'America/New_York', mode: { value: 'managed', compareDigest: 'mode-0' }, config: { jsonValue: { version: 1, campaigns: copy(campaigns) }, compareDigest: 'config-0' } },
     metafieldDefinitions: { nodes: [
@@ -56,6 +57,11 @@ function backend(campaigns: StoredCampaign[]) {
       if (state.failSettingsReads > 0) { state.failSettingsReads--; throw new Error('读取响应丢失'); }
       return { data: copy(state.settings) };
     }
+    if (operation === 'BogoVariants') return { data: { nodes: (variables.ids ?? []).map(id => {
+      const variantId = id.slice(id.lastIndexOf('/') + 1);
+      const productId = variantProducts[variantId];
+      return productId ? { id, title: variantId, product: { id: `gid://shopify/Product/${productId}`, title: productId }, media: { nodes: [] } } : null;
+    }) } };
     if (operation === 'BogoDiscountDefinition') return { data: { metafieldDefinitions: { nodes: [{ type: { name: 'json' } }] } } };
     if (operation === 'BogoDiscount') return { data: { discountNode: copy(state.owners.get(variables.id!) ?? null) } };
     if (operation === 'BogoDiscounts') {
@@ -101,7 +107,7 @@ function backend(campaigns: StoredCampaign[]) {
 }
 afterEach(() => vi.unstubAllGlobals());
 
-it('新 App 首次打开 NuPhyX 时不导入旧活动快照', () => {
+it('当前命名空间没有配置时从空活动开始', () => {
   const state = backend([]);
   const settings: Settings = { ...state.settings, shop: { ...state.settings.shop, myshopifyDomain: 'q1j8s1-yq.myshopify.com', mode: null, config: null } };
   expect(initialConfig(settings)).toEqual({ version: 1, campaigns: [] });
@@ -118,9 +124,9 @@ it('新活动先准备带绑定的原生排期，再发布 shop 配置', async (
   expect(state.owners.get(saved.nativeDiscount!.id)?.campaignBinding.jsonValue).toEqual({ campaignId: 'new', bindingToken: saved.nativeDiscount!.token });
   expect(saved.startsAt).toBe(startsAt);
   expect(draft.nativeDiscount).toBeUndefined();
-  expect(state.query.mock.calls.find(([document]) => document.includes('query BogoSettings'))?.[0]).toContain('nuphy_bonus_v2');
-  expect(state.query.mock.calls.find(([document]) => document.includes('mutation BogoCreateDiscount'))?.[1].variables.discount?.metafields[0].namespace).toBe('nuphy_bonus_v2');
-  expect(state.query.mock.calls.find(([document]) => document.includes('mutation BogoSave'))?.[1].variables.metafields?.map(field => field.namespace)).toEqual(['nuphy_bonus_v2', 'nuphy_bonus_v2']);
+  expect(state.query.mock.calls.find(([document]) => document.includes('query BogoSettings'))?.[0]).toContain('nuphy_bogo');
+  expect(state.query.mock.calls.find(([document]) => document.includes('mutation BogoCreateDiscount'))?.[1].variables.discount?.metafields[0].namespace).toBe('nuphy_bogo');
+  expect(state.query.mock.calls.find(([document]) => document.includes('mutation BogoSave'))?.[1].variables.metafields?.map(field => field.namespace)).toEqual(['nuphy_bogo', 'nuphy_bogo']);
 });
 
 it('新 owner 创建失败不发布活动，输入保持原样', async () => {
@@ -288,6 +294,18 @@ it('只改活动规则复用 owner，不改 Shopify 排期', async () => {
   expect(initialConfig(saved).campaigns[0].nativeDiscount).toEqual(original.nativeDiscount);
   expect(state.created).toBe(0);
   expect(state.retired).toEqual([]);
+});
+
+it('重存整款活动时剔除重复规格，保留其他产品白名单和原折扣绑定', async () => {
+  const original = { ...ownedCampaign(), triggerVariantIds: ['11', '12', '21', '31', '99'],
+    triggerProducts: [{ productId: '1', excludedVariantIds: ['12'] }, { productId: '2', excludedVariantIds: [] }] };
+  const state = backend([original], { 11: '1', 12: '1', 21: '2', 31: '3' });
+  const saved = initialConfig(await saveCampaign(copy(state.settings), original, { ...original, showLabel: false })).campaigns[0];
+  expect(saved.triggerProducts).toEqual(original.triggerProducts);
+  expect(saved.triggerVariantIds).toEqual(['31', '99']);
+  expect(saved.nativeDiscount).toEqual(original.nativeDiscount);
+  expect(original.triggerVariantIds).toEqual(['11', '12', '21', '31', '99']);
+  expect(state.created).toBe(0);
 });
 
 it.each(['名称', '产品'])('编辑已结束的立即开始活动%s，保持合法的历史排期', async field => {

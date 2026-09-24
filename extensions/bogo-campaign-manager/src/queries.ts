@@ -1,10 +1,10 @@
 export const loadConfigQuery = `query BogoSettings {
   shop {
     id myshopifyDomain ianaTimezone
-    mode: metafield(namespace: "nuphy_bonus_v2", key: "mode") { value compareDigest }
-    config: metafield(namespace: "nuphy_bonus_v2", key: "campaigns") { jsonValue compareDigest }
+    mode: metafield(namespace: "nuphy_bogo", key: "mode") { value compareDigest }
+    config: metafield(namespace: "nuphy_bogo", key: "campaigns") { jsonValue compareDigest }
   }
-  metafieldDefinitions(first: 10, ownerType: SHOP, namespace: "nuphy_bonus_v2") {
+  metafieldDefinitions(first: 10, ownerType: SHOP, namespace: "nuphy_bogo") {
     nodes { id key type { name } access { storefront } }
   }
 }`;
@@ -47,7 +47,7 @@ export const findProductQuery = `query BogoFindProduct($query: String!) {
 export const discountQuery = `query BogoDiscount($id: ID!) {
   discountNode(id: $id) {
     id
-    campaignBinding: metafield(namespace: "nuphy_bonus_v2", key: "campaign") { jsonValue }
+    campaignBinding: metafield(namespace: "nuphy_bogo", key: "campaign") { jsonValue }
     discount {
       ... on DiscountAutomaticApp {
         startsAt endsAt status
@@ -61,7 +61,7 @@ export const findDiscountsQuery = `query BogoDiscounts($after: String) {
   discountNodes(first: 100, after: $after, query: "method:automatic") {
     nodes {
       id
-      campaignBinding: metafield(namespace: "nuphy_bonus_v2", key: "campaign") { jsonValue }
+      campaignBinding: metafield(namespace: "nuphy_bogo", key: "campaign") { jsonValue }
       discount { ... on DiscountAutomaticApp { startsAt endsAt status } }
     }
     pageInfo { hasNextPage endCursor }
@@ -83,7 +83,7 @@ export const deactivateDiscountMutation = `mutation BogoDeactivateDiscount($id: 
 }`;
 
 export const discountDefinitionQuery = `query BogoDiscountDefinition {
-  metafieldDefinitions(first: 10, ownerType: DISCOUNT, namespace: "nuphy_bonus_v2", key: "campaign") {
+  metafieldDefinitions(first: 10, ownerType: DISCOUNT, namespace: "nuphy_bogo", key: "campaign") {
     nodes { id key type { name } }
   }
 }`;

@@ -48,11 +48,12 @@ function selectTriggers(campaign: StoredCampaign, result: PickerResult, variants
   for (const productId of result.ids) {
     const current = campaign.triggerProducts?.find(rule => rule.productId === productId);
     const selected = new Set(result.selection[productId]);
-    // 当前勾选规格同步给旧商城白名单，产品规则仍由 Function 处理未来新增规格。
-    triggerVariantIds.push(...selected);
     // 旧白名单保持原语义，不因在弹窗中确认而纳入未来新增规格。
     const legacyProduct = !current && campaign.triggerVariantIds.some(id => numericId(variants[id]?.product.id ?? '') === productId);
-    if (legacyProduct) continue;
+    if (legacyProduct) {
+      triggerVariantIds.push(...selected);
+      continue;
+    }
     const allIds = new Set(result.products[productId].variants.map(variant => numericId(variant.id)));
     const excluded = new Set([
       ...[...allIds].filter(id => !selected.has(id)),

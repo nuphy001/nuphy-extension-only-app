@@ -12,11 +12,11 @@
 #   - _promo_id            : 所属 campaign id（防跨 campaign 替换攻击）
 query CartLinesDiscountsGenerateRun {
   shop {
-    promotionMode: metafield(namespace: "nuphy_bonus_v2", key: "mode") { value }
-    promotionConfig: metafield(namespace: "nuphy_bonus_v2", key: "campaigns") { jsonValue }
+    promotionMode: metafield(namespace: "nuphy_bogo", key: "mode") { value }
+    promotionConfig: metafield(namespace: "nuphy_bogo", key: "campaigns") { jsonValue }
   }
   discount {
-    campaignBinding: metafield(namespace: "nuphy_bonus_v2", key: "campaign") { jsonValue }
+    campaignBinding: metafield(namespace: "nuphy_bogo", key: "campaign") { jsonValue }
   }
   cart {
     lines {

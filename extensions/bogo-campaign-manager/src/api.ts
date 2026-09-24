@@ -8,7 +8,7 @@ import { initialSelection, isHandleSearch, normalizeSelection, pickerRanges, val
 import { canonical, same, isBound, matchesPreparation, canReuseDiscount } from './utils/discount';
 import { loadConfigQuery, defineConfigMutation, saveConfigMutation, variantsQuery, productQuery, findProductQuery, discountQuery, findDiscountsQuery, createDiscountMutation, deactivateDiscountMutation, discountDefinitionQuery } from './queries';
 
-const namespace = 'nuphy_bonus_v2';
+const namespace = 'nuphy_bogo';
 
 // 统一处理 Admin API 的 GraphQL 错误和空响应。
 async function query<T>(document: string, variables: Record<string, unknown> = {}): Promise<T> {
@@ -18,7 +18,7 @@ async function query<T>(document: string, variables: Record<string, unknown> = {
   return result.data;
 }
 export const loadSettings = () => query<Settings>(loadConfigQuery);
-// 新 App 只读取自己的活动配置；首次打开时从空活动开始。
+// 只读取当前命名空间的活动配置；首次打开时从空活动开始。
 export function initialConfig(settings: Settings): StoredConfig {
   if (settings.shop.mode) {
     if (settings.shop.mode.value !== 'managed' || !settings.shop.config) throw new Error('活动配置不可用，请检查店铺配置');
@@ -283,6 +283,17 @@ async function retirePreviousDiscount(settings: Settings, previous: StoredCampai
   return settings;
 }
 
+// 整款规则已决定该产品所有规格的参与范围，避免再把相同规格写进旧白名单。
+async function compactTriggerVariants(campaign: StoredCampaign): Promise<StoredCampaign> {
+  const productIds = new Set(campaign.triggerProducts?.map(rule => rule.productId));
+  if (!productIds.size || !campaign.triggerVariantIds.length) return campaign;
+  const variants = await loadVariants(campaign.triggerVariantIds);
+  return { ...campaign, triggerVariantIds: campaign.triggerVariantIds.filter(id => {
+    const productId = variants[id]?.product.id;
+    return !productId || !productIds.has(resourceId(productId, 'Product'));
+  }) };
+}
+
 // 逐个保存活动：校验最新配置、准备折扣、发布成功后处理旧折扣。
 export async function saveCampaign(settings: Settings, baseCampaign: StoredCampaign | undefined, draftCampaign: StoredCampaign | null): Promise<Settings> {
   if (!baseCampaign && !draftCampaign) throw new Error('没有可以保存的活动。');
@@ -302,7 +313,7 @@ export async function saveCampaign(settings: Settings, baseCampaign: StoredCampa
       return await retirePreviousDiscount(latest, baseCampaign, current);
     }
     if (!same(current, baseCampaign)) throw new Error('这个活动已被其他人修改。请重新加载后再编辑；其他活动的修改已保留。');
-    let draft = draftCampaign ? parseConfig({ version: 1, campaigns: [{ ...draftCampaign, nativeDiscount: current?.nativeDiscount }] }).campaigns[0] : null;
+    let draft = draftCampaign ? await compactTriggerVariants(parseConfig({ version: 1, campaigns: [{ ...draftCampaign, nativeDiscount: current?.nativeDiscount }] }).campaigns[0]) : null;
     await ensureDefinitions(latest);
     draft = await prepareCampaignDiscount(settings.shop.id, current, draft);
     const next = parseConfig({ version: 1, campaigns: current

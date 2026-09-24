@@ -1,6 +1,6 @@
 # 买赠活动 Q&A
 
-记录日期：2026-09-23。本文说明旧版 `NuPhy Bonus` 与新版 `NuPhy Bonus Unified` 的折扣记录、活动排期、FREE GIFT 标签，以及「标题必须唯一」的保存报错。定时折扣已有 NuPhyX 实测结果；标签部分依据本地代码核对，尚未完成线上切换验证。
+记录日期：2026-09-23，验证状态更新于 2026-09-24。本文说明旧版与当前 App 的折扣记录、活动排期、FREE GIFT 标签，以及「标题必须唯一」的保存报错。此前 3 个 `nuphy_bonus_v2` 活动已删除；当前 App 的四活动同车结账已在 NuPhyX 实测。
 
 ## 1. 为什么旧版会在 Shopify「折扣」列表生成 Free Gift？
 
@@ -10,7 +10,7 @@
 
 列表的「类型」显示 `nuphy-free-gift-discount`，这是函数名称。新旧 App 都沿用此名称，单凭这一列无法判断记录属于哪个 App。截图中的搜索词为 `free`，可能筛掉按中文活动名称创建的新记录，查看时应先清空搜索。
 
-相关实现见[旧版折扣创建说明](../extensions/nuphy-free-gift-discount/README.md)、[新版折扣创建与绑定](../extensions/bogo-campaign-manager/src/api.ts)。Shopify 的 [discountAutomaticAppCreate](https://shopify.dev/docs/api/admin-graphql/2026-04/mutations/discountAutomaticAppCreate) 用于创建这类由 App 管理的自动折扣。
+当前实现见[折扣计算说明](../extensions/nuphy-free-gift-discount/README.md)和[折扣创建与绑定](../extensions/bogo-campaign-manager/src/api.ts)。Shopify 的 [discountAutomaticAppCreate](https://shopify.dev/docs/api/admin-graphql/2026-04/mutations/discountAutomaticAppCreate) 用于创建这类由 App 管理的自动折扣。
 
 ## 2. 为什么不用自己运行定时任务，也能设置活动开始和结束时间？
 
@@ -33,15 +33,15 @@ App 页面中的「未开始／进行中／已结束」按时间刷新，用于�
 | 活动中 | 进行中 | `ACTIVE` | Free |
 | 结束后 | 已结束 | `EXPIRED` | $19.00 |
 
-测试商品为 NuPhy Air75 V3 与 Extra Mono Wrist Rest for Air75 V3（Acrylic Frosted）。键盘的 20% 折扣全程保留，未提交订单；测试后已将临时活动恢复停用。此次验证覆盖定时折扣生效与失效，未验证 `dev.nuphy.com` 接入新 App 后自动加赠的完整流程。
+测试商品为 NuPhy Air75 V3 与 Extra Mono Wrist Rest for Air75 V3（Acrylic Frosted）。键盘的 20% 折扣全程保留，未提交订单；测试后已将临时活动恢复停用。这次测试验证了单活动开始和结束时间。2026-09-24，当前 App 版本 `nuphy-bonus-5` 已发布到当时唯一安装该 App 的 NuPhyX；本地 NuPhyX 无头店铺的四活动同车测试进入真实 Checkout，四件赠品均为 FREE，Air75 主品保留 20% 折扣，合计 $490.90。无头前端的排期修复尚未部署，NuPhy 正式店也未发布当前 App。
 
 ## 3. 开启「在购物车显示 FREE GIFT 标签」后，保存时实际做了什么？
 
-开启时，App 将该活动的 `showLabel` 保存为 `true`；关闭时保存为 `false`。新 App 把这个字段连同活动规则写入店铺 metafield `nuphy_bonus_v2.campaigns`。见[开关定义](../extensions/bogo-campaign-manager/src/app-home.tsx)和[配置保存逻辑](../extensions/bogo-campaign-manager/src/api.ts)。
+开启时，App 将该活动的 `showLabel` 保存为 `true`；关闭时保存为 `false`。当前源码把这个字段连同活动规则写入店铺 metafield `nuphy_bogo.campaigns`。此前创建的 3 个 `nuphy_bonus_v2` 活动已由店铺方删除，本次不迁移。见[开关定义](../extensions/bogo-campaign-manager/src/app-home.tsx)和[配置保存逻辑](../extensions/bogo-campaign-manager/src/api.ts)。
 
 这个开关设计上控制购物车赠品的显示标识。它不会给商品添加 Shopify Tag，也不会修改赠品免费规则。结账折扣函数返回的文案固定为 `Free Gift`，不读取 `showLabel`，因此关闭开关不会隐藏结账里的折扣文案。见[折扣计算逻辑](../extensions/nuphy-free-gift-discount/src/managed_campaign_discount.js)。
 
-无头店铺已经有标签显示逻辑。现有前端读取旧 App 的 `nuphy_bogo.campaigns`；尚未启用页面管理时，回退到前端原有活动配置。新增赠品时，前端写入 `_promo_role=gift`，并将活动的 `showLabel` 转为购物车行属性 `_promo_show_label`。购物车抽屉确认该行是赠品后，读取这个属性，决定是否在图片左上角显示 `FREE GIFT`。活动未设置 `showLabel` 时默认显示；旧购物车行缺少标签属性时，会查询前端原有活动配置，仍找不到则默认显示。
+无头店铺已经有标签显示逻辑。现有前端读取 `nuphy_bogo.campaigns`；尚未启用页面管理时，回退到前端原有活动配置。新增赠品时，前端写入 `_promo_role=gift`，并将活动的 `showLabel` 转为购物车行属性 `_promo_show_label`。购物车抽屉确认该行是赠品后，读取这个属性，决定是否在图片左上角显示 `FREE GIFT`。活动未设置 `showLabel` 时默认显示；旧购物车行缺少标签属性时，会查询前端原有活动配置，仍找不到则默认显示。
 
 页面上的 `Free Gift` 还可能来自其他位置，开关并不统一控制这些文字：
 
@@ -52,17 +52,18 @@ App 页面中的「未开始／进行中／已结束」按时间刷新，用于�
 | 独立 `/cart` 页面中的赠品标签 | 识别到赠品行就显示 `Free Gift` | `src/app/cart/cart-item.tsx` |
 | 商品卡片角标 | 商品自身的 `_label_Free Gift` Tag 由前端渲染；活动开关不会添加这个 Tag | `src/components/common/products/card/badge.tsx` |
 
-新 App 使用独立的 `nuphy_bonus_v2` 配置，当前保留无头店铺读取旧 App 的链路。这是新旧 App 的隔离安排，现有标签仍由上述逻辑显示。具体边界与限制如下：
+当前 App 源码已改为读取 `nuphy_bogo`，与无头店铺原有查询一致。仅改命名空间不会迁移现有活动、折扣绑定，也不会更新旧购物车行的 `_promo_id`。现有标签仍由上述逻辑显示，另有这些限制：
 
 | 边界或限制 | 实际影响 | 前端代码位置 |
 | --- | --- | --- |
-| 前端保留读取 `nuphy_bogo.mode/campaigns`，尚未切换到 `nuphy_bonus_v2` | 旧 App 配置继续供前端读取；新 App 的开关尚不能控制这条链路 | `src/lib/shopify/queries/promotions.ts` |
+| 前端读取 `nuphy_bogo.mode/campaigns`，其中仍留有旧活动 | 发布后管理页也会读取旧活动；重新创建活动前先确认是否需要清理这些数据 | `src/lib/shopify/queries/promotions.ts` |
+| 已部署的前端加赠只按 `enabled` 判断，未按 `startsAt`、`endsAt` 过滤 | 排期前后可能出现已加赠但结账仍收费的赠品行；本地分支已有修复，尚未部署 | `src/lib/promotion/engine.ts` |
 | 已有赠品行只校正数量，没有同步更新标签属性 | 修改开关并保存后，已有赠品可能保留原来的标签状态 | `src/lib/promotion/engine.ts`、`src/components/cart/api/reconcile-promotions.server.ts` |
 | 独立 `/cart` 页面只判断是否为赠品，没有判断 `showLabel` | 独立购物车页面与抽屉的标签表现不一致 | `src/app/cart/cart-item.tsx` |
 
 表中的前端路径属于 `nuphy-headless-shop` 项目。抽屉显示逻辑位于 `src/components/cart/drawer/cart-item.tsx`，购物车行属性处理位于 `src/lib/promotion/attributes.ts`。
 
-以上标签结论来自只读代码核对，未修改 headless 项目，未实测线上标签切换。新 App 的「保存成功」说明新配置已写入；前台已有的 `Free Gift` 显示不能用来证明新 App 开关已经接通。
+以上标签结论来自代码核对，尚未实测线上标签切换。无头前端的排期修复只在本地分支，尚未部署；四活动同车的本地结账测试不能代替线上标签开关验收。App 的「保存成功」说明新配置已写入，前台已有的 `Free Gift` 显示不能单独证明标签开关生效。
 
 ## 4. 活动名称没有改，为什么修改排期仍报「标题必须唯一」？
 

@@ -30,7 +30,7 @@ CLI 需登录有对应组织、应用和店铺权限的账号。本文统一使�
 | --- | --- | --- |
 | `shopify.app.toml` | `872f6beb8dc7437845803205b98c1436` | 本项目的构建、校验和发布目标 |
 
-NuPhy 现有赠品折扣属于旧共享 App（Client ID `ea8902f04f9c9f1c5f6fd7ed25500b71`）。NuPhyX 在 `shopify store list` 中标为 `dev`，但它是 Plus 开发店，未出现在同组织的 Dev Dashboard 店铺列表。当前执行 `pnpm dev`，或用 `--store q1j8s1-yq.myshopify.com` 指定该店，都会报 `Could not find store`。Shopify 目前仅支持对 Dev Dashboard 创建的店铺运行 `app dev`；`store list` 的 `dev` 标记不足以判断这条命令能否使用。[Shopify 工作人员说明](https://community.shopify.dev/t/shopify-app-dev-doesnt-work-with-plus-development-stores/23471/2)
+旧共享 App（Client ID `ea8902f04f9c9f1c5f6fd7ed25500b71`）已由店铺方删除。NuPhyX 在 `shopify store list` 中标为 `dev`，但它是 Plus 开发店，未出现在同组织的 Dev Dashboard 店铺列表。当前执行 `pnpm dev`，或用 `--store q1j8s1-yq.myshopify.com` 指定该店，都会报 `Could not find store`。Shopify 目前仅支持对 Dev Dashboard 创建的店铺运行 `app dev`；`store list` 的 `dev` 标记不足以判断这条命令能否使用。[Shopify 工作人员说明](https://community.shopify.dev/t/shopify-app-dev-doesnt-work-with-plus-development-stores/23471/2)
 
 `pnpm run deploy` 使用 `shopify.app.toml` 的 `client_id` 发布一个 App 版本。所有安装了这个 App 的店铺都会收到新版本；`dev_store_url` 只是 `app dev` 的默认店铺地址，不能让 NuPhyX 支持开发预览，也不能将发布限制在 NuPhyX。[Shopify App 版本说明](https://shopify.dev/docs/apps/launch/deployment/deploy-app-versions)
 
@@ -38,13 +38,13 @@ NuPhy 现有赠品折扣属于旧共享 App（Client ID `ea8902f04f9c9f1c5f6fd7e
 
 **已启用 App 页面管理的店铺，只需在 App 中配置活动，无需再修改源码中的商品或赠品 ID，也无需为活动内容变化重新发布代码。**
 
-当前管理页保存活动到店铺的 `nuphy_bonus_v2.campaigns`，并写入 `nuphy_bonus_v2.mode = managed`。赠品折扣函数读取这份配置及对应折扣的活动绑定；配置或绑定无效时不发放赠品折扣，不再回退到源码内置的旧活动。[读取逻辑](extensions/nuphy-free-gift-discount/src/managed_campaign_discount.js)与[配置校验](extensions/nuphy-free-gift-discount/src/configuration.ts)以当前源码为准。
+当前源码的管理页保存活动到店铺的 `nuphy_bogo.campaigns`，并写入 `nuphy_bogo.mode = managed`；赠品折扣函数读取这份配置及对应折扣的 `nuphy_bogo.campaign` 绑定。NuPhyX 无头店铺原本也读取 `nuphy_bogo`。配置或绑定无效时不发放赠品折扣，不回退到源码内置的旧活动。[读取逻辑](extensions/nuphy-free-gift-discount/src/managed_campaign_discount.js)与[配置校验](extensions/nuphy-free-gift-discount/src/configuration.ts)以当前源码为准。
 
 赠品折扣只使用 `managed_campaign_discount` 这一套实现。构建和发布时无需按店铺切换入口。
 
-`legacy-campaigns.json` 是保留的数据文件，当前管理页不读取它。店铺没有已保存配置时，管理页从空活动列表开始。
+`legacy-campaigns.json` 是保留的数据文件，当前管理页不读取它。切换前须核对店铺 `nuphy_bogo` 中是否留有旧配置；只有 `mode` 和 `campaigns` 都不存在时，管理页才从空活动列表开始。
 
-NuPhy 现有折扣仍由旧共享 App 提供。发布当前 App 不会更新旧 App，也不会把旧折扣及 `nuphy_bogo` 活动迁移过来。后续如要让 NuPhy 使用当前 App，须先在 NuPhyX 验证活动、赠品和结账流程，再单独决定迁移方式。
+NuPhyX 此前用当前 App 创建的 3 个 `nuphy_bonus_v2` 活动已由店铺方删除，原生折扣也已过期；`nuphy_bogo` 中仍有旧配置。2026-09-24，`nuphy-bonus-5` 已发布，当时当前 App 仅安装于 NuPhyX。本地 NuPhyX 无头店铺的四活动同车测试进入真实 Checkout：四件赠品均为 FREE，Air75 主品保留 20% 折扣，合计 $490.90。排期相关的无头前端修复仍只在本地分支，尚未部署；NuPhy 正式店也未发布当前 App。开始和结束时间的单活动实测见[买赠活动 Q&A](docs/bogo-faq.md)。
 
 ## 快捷脚本说明
 
@@ -88,7 +88,7 @@ CLI 需要对应组织的账号权限。若返回 `403` 和 `You are not a membe
 
 ## 发布当前 App
 
-发布前先核对该 App 的安装店铺。如果它也已安装到 NuPhy，下面的发布会同时影响 NuPhy，不能只让 NuPhyX 使用新版本。
+`nuphy-bonus-5` 发布时，当前 App 只安装于 NuPhyX。后续每次发布前仍须核对安装店铺；如果当前 App 安装到 NuPhy，下面的命令也会更新 NuPhy。
 
 1. 完成上面的配置校验、测试和类型检查。
 2. 用 `pnpm run info` 核对目标 App 的 Client ID 为 `872f6beb8dc7437845803205b98c1436`；在 Partner Dashboard 的应用管理页面另行核对安装店铺范围。
