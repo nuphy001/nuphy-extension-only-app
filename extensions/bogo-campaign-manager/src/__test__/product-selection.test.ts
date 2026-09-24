@@ -31,9 +31,9 @@ it('赠品直接按保存的规格 ID 去重计数，不依赖产品是否读回
 });
 
 it('把原生勾选结果保存为逐产品排除项，并保留暂不可读的旧排除记录', () => {
-  const current = { ...campaign, triggerProducts: [{ productId: '1', excludedVariantIds: ['12', '99'] }] };
+  const current = { ...campaign, triggerVariantIds: ['13', '99'], triggerProducts: [{ productId: '1', excludedVariantIds: ['12', '99'] }] };
   expect(applyProductSelection(current, 'trigger', { ids: ['1', '2'], products, selection: { 1: ['11', '12'], 2: ['21'] } }, known)).toEqual({
-    triggerVariantIds: [], triggerProducts: [
+    triggerVariantIds: ['11', '12', '21'], triggerProducts: [
       { productId: '1', excludedVariantIds: ['13', '99'] },
       { productId: '2', excludedVariantIds: [] },
     ],

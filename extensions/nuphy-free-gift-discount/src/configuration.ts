@@ -22,9 +22,11 @@ export const MAX_CONFIG_BYTES = 10000;
 function record(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
+
 function variant(value: unknown): value is string {
   return typeof value === 'string' && /^[1-9]\d*$/.test(value);
 }
+
 function identifiers(value: unknown): value is string[] {
   return Array.isArray(value) && value.every(variant) && new Set(value).size === value.length;
 }

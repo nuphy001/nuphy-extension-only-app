@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { goboFreeGiftDiscountFunction } from './cart_lines_discounts_generate_run.production';
+import { goboFreeGiftDiscountFunction } from './cart_lines_discounts_generate_run';
 
 /** 固定测试活动通过 Function 输入提供，避免测试绑定持续变动的线上白名单。 */
 

@@ -7,7 +7,8 @@ import { checkErrors, MutationError } from './utils/errors';
 import { initialSelection, isHandleSearch, normalizeSelection, pickerRanges, validateSelection, variantSelection } from './utils/picker';
 import { canonical, same, isBound, matchesPreparation, canReuseDiscount } from './utils/discount';
 import { loadConfigQuery, defineConfigMutation, saveConfigMutation, variantsQuery, productQuery, findProductQuery, discountQuery, findDiscountsQuery, createDiscountMutation, deactivateDiscountMutation, discountDefinitionQuery } from './queries';
-import legacy from './legacy-campaigns.json';
+
+const namespace = 'nuphy_bonus_v2';
 
 // 统一处理 Admin API 的 GraphQL 错误和空响应。
 async function query<T>(document: string, variables: Record<string, unknown> = {}): Promise<T> {
@@ -17,15 +18,14 @@ async function query<T>(document: string, variables: Record<string, unknown> = {
   return result.data;
 }
 export const loadSettings = () => query<Settings>(loadConfigQuery);
-// 已切换店铺读取页面管理配置，未切换店铺使用各自的旧活动配置。
+// 新 App 只读取自己的活动配置；首次打开时从空活动开始。
 export function initialConfig(settings: Settings): StoredConfig {
   if (settings.shop.mode) {
     if (settings.shop.mode.value !== 'managed' || !settings.shop.config) throw new Error('活动配置不可用，请检查店铺配置');
     return parseConfig(settings.shop.config.jsonValue);
   }
   if (settings.shop.config) throw new Error('店铺已有未完成切换的配置，请先确认，避免覆盖');
-  const value = (legacy as Record<string, unknown>)[settings.shop.myshopifyDomain];
-  return value ? parseConfig(value) : { version: 1, campaigns: [] };
+  return { version: 1, campaigns: [] };
 }
 // 将规格 ID 去重后分批读取，返回按规格 ID 索引的详情。
 export async function loadVariants(ids: string[]): Promise<Record<string, Variant>> {
@@ -125,7 +125,7 @@ async function ensureDefinitions(settings: Settings) {
       continue;
     }
     const result = await query<Response.DefinitionCreate>(defineConfigMutation, {
-      definition: { name, namespace: 'nuphy_bogo', key, type, ownerType: 'SHOP', access: { storefront: 'PUBLIC_READ' } },
+      definition: { name, namespace, key, type, ownerType: 'SHOP', access: { storefront: 'PUBLIC_READ' } },
     });
     checkErrors(result.metafieldDefinitionCreate.userErrors);
   }
@@ -134,8 +134,8 @@ async function ensureDefinitions(settings: Settings) {
 async function publishSettings(settings: Settings, config: StoredConfig): Promise<Settings> {
   const result = await query<Response.SettingsSave>(saveConfigMutation, {
     metafields: [
-      { ownerId: settings.shop.id, namespace: 'nuphy_bogo', key: 'mode', type: 'single_line_text_field', value: 'managed', compareDigest: settings.shop.mode?.compareDigest ?? null },
-      { ownerId: settings.shop.id, namespace: 'nuphy_bogo', key: 'campaigns', type: 'json', value: JSON.stringify(config), compareDigest: settings.shop.config?.compareDigest ?? null },
+      { ownerId: settings.shop.id, namespace, key: 'mode', type: 'single_line_text_field', value: 'managed', compareDigest: settings.shop.mode?.compareDigest ?? null },
+      { ownerId: settings.shop.id, namespace, key: 'campaigns', type: 'json', value: JSON.stringify(config), compareDigest: settings.shop.config?.compareDigest ?? null },
     ],
   });
   checkErrors(result.metafieldsSet.userErrors);
@@ -190,7 +190,7 @@ async function ensureDiscountDefinition() {
     return;
   }
   const result = await query<Response.DefinitionCreate>(defineConfigMutation, {
-    definition: { name: 'BOGO 活动绑定', namespace: 'nuphy_bogo', key: 'campaign', type: 'json', ownerType: 'DISCOUNT' },
+    definition: { name: 'BOGO 活动绑定', namespace, key: 'campaign', type: 'json', ownerType: 'DISCOUNT' },
   });
   checkErrors(result.metafieldDefinitionCreate.userErrors);
 }
@@ -199,10 +199,10 @@ async function ensureDiscountDefinition() {
 async function createDiscountOwner(campaign: StoredCampaign, preparation: DiscountPreparation, previous: DiscountNode | null): Promise<NativeDiscount> {
   const result = await query<Response.DiscountCreate>(createDiscountMutation, {
     discount: {
-      title: campaign.name || 'BOGO 买赠活动', functionHandle: 'nuphy-free-gift-discount', discountClasses: ['PRODUCT'],
+      title: `${campaign.name || 'BOGO 买赠活动'} (${preparation.token})`, functionHandle: 'nuphy-free-gift-discount', discountClasses: ['PRODUCT'],
       startsAt: preparation.startsAt, endsAt: campaign.endsAt ?? null,
       combinesWith: { productDiscounts: true, orderDiscounts: previous?.discount.combinesWith?.orderDiscounts ?? false, shippingDiscounts: previous?.discount.combinesWith?.shippingDiscounts ?? false },
-      metafields: [{ namespace: 'nuphy_bogo', key: 'campaign', type: 'json', value: JSON.stringify({ campaignId: campaign.id, bindingToken: preparation.token }) }],
+      metafields: [{ namespace, key: 'campaign', type: 'json', value: JSON.stringify({ campaignId: campaign.id, bindingToken: preparation.token }) }],
     },
   });
   checkErrors(result.discountAutomaticAppCreate.userErrors);

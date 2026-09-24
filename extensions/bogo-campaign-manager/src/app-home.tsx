@@ -68,7 +68,9 @@ function App() {
     setPage(current => ({ ...current, operation, feedback: null }));
     try {
       const result = await work();
-      setPage(current => ({ ...current, ...result, operation: null }));
+      setPage(current => ({ ...current, ...result, operation: null,
+        feedback: result.feedback?.tone === 'success' ? null : result.feedback ?? null }));
+      if (result.feedback?.tone === 'success') shopify.toast.show(result.feedback.text);
     } catch (cause) {
       setPage(current => operation === 'trigger' || operation === 'gift'
         ? { ...current, operation: null, editor: current.editor && { ...current.editor, issues: { ...current.editor.issues, [operation]: errorMessage(cause) } } }
@@ -202,7 +204,7 @@ function App() {
             <s-section heading="活动信息"><s-stack gap="small-400">
               <s-stack direction="inline" gap="small-400" alignItems="center">
                 <s-text accessibilityVisibility="hidden">活动名称</s-text>
-                <HelpTip id="campaign-name-help" label="活动名称说明">同步为 Shopify 折扣名称，顾客结账时可能看到。</HelpTip>
+                <HelpTip id="campaign-name-help" label="活动名称说明">作为 Shopify 折扣名称的前缀，系统会附加唯一标识。顾客结账时可能看到。</HelpTip>
               </s-stack>
               <s-text-field id="campaign-name" label="活动名称" labelAccessibilityVisibility="exclusive" placeholder="例如：Node 键盘买赠"
                 value={editor.draft.name ?? ''} maxLength={100} disabled={disabled} error={issues.name}

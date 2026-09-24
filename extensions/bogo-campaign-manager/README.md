@@ -1,24 +1,23 @@
 # BOGO 活动管理首页
 
-此扩展位于原 BOGO app 内，使用 Shopify 托管的 `admin.app.home.render`。
+此扩展是当前 App（Client ID `872f6beb8dc7437845803205b98c1436`）的管理首页，使用 Shopify 托管的 `admin.app.home.render`。
 
-支持活动名称、主商品变体、赠品变体、原有赠送数量规则、启停和移除。保存后商城与折扣函数读取同一份 `nuphy_bogo` 店铺 metafields，无需为新活动修改代码。
+支持活动名称、主商品变体、赠品变体、赠送数量规则、排期、启停和移除。保存后，赠品折扣函数读取店铺的 `nuphy_bonus_v2` 配置，无需为新活动修改代码。
 
 首页按“活动名称、主商品、赠品、状态、操作”展示，主商品统计排除后的参与规格，赠品统计独立规格。商品未完整读取时显示“规格待确认”，长名称可通过提示查看全文；活动排期在编辑页查看。
 
 配置用量统计全部已保存活动的 UTF-8 字节数，不包含未提交的草稿。未导入的旧配置和新店不会标为“已保存”。页面提示与保存校验共用 10000 字节上限，依据是 [Shopify Functions 对单个 metafield 的读取限制](https://shopify.dev/docs/apps/build/metafields/metafield-limits)。
 
-首次发布两端代码后，在页面核对当前店铺与旧活动导入预览，再点击“导入并启用页面管理”。导入之前两端保持原有源码配置。完整切换流程见商城项目的 `docs/bogo-management.md`。
+当前 App 从页面管理活动。旧 App 的 `nuphy_bogo` 活动和折扣不会因为发布此 App 自动迁移。
 
-配置文件 `legacy-campaigns.json` 是一次性迁移快照，来自商城生产与测试配置；导入后不再用于管理活动。JSON 仅保存数字字符串形式的变体 ID，不保存商品名称和图片，页面按需从 Shopify 读取。
+`legacy-campaigns.json` 是保留的数据文件；当前管理页不读取它。实际活动以店铺保存的配置为准。
 
 ## 本地检查
 
 - `pnpm --filter bogo-campaign-manager check:types`
 - `pnpm --filter bogo-campaign-manager test`：运行全部 Vitest 测试。
 - `pnpm --filter bogo-campaign-manager test:watch`：修改时自动重跑测试。
-- `pnpm build:test`
-- `pnpm build:production`
+- `pnpm run build`：使用根目录 `shopify.app.toml` 构建当前 App，不发布。
 
 ## 代码与测试目录
 

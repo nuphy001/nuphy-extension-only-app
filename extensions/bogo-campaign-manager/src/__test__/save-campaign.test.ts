@@ -18,6 +18,7 @@ type DiscountOwner = {
   id: string;
   campaignBinding: { jsonValue: { campaignId: string; bindingToken: string } };
   discount: {
+    title: string;
     startsAt: string;
     endsAt: string | null;
     status: string;
@@ -26,8 +27,8 @@ type DiscountOwner = {
 };
 type MockVariables = {
   id?: string;
-  discount?: Pick<DiscountOwner['discount'], 'startsAt' | 'endsAt' | 'combinesWith'> & { metafields: { value: string }[] };
-  metafields?: { key: string; value: string; compareDigest: string | null }[];
+  discount?: Pick<DiscountOwner['discount'], 'title' | 'startsAt' | 'endsAt' | 'combinesWith'> & { metafields: { namespace: string; value: string }[] };
+  metafields?: { namespace: string; key: string; value: string; compareDigest: string | null }[];
 };
 let shopSequence = 0;
 function backend(campaigns: StoredCampaign[]) {
@@ -45,7 +46,7 @@ function backend(campaigns: StoredCampaign[]) {
   };
   for (const item of campaigns) if (item.nativeDiscount) state.owners.set(item.nativeDiscount.id, {
     id: item.nativeDiscount.id, campaignBinding: { jsonValue: { campaignId: item.id, bindingToken: item.nativeDiscount.token } },
-    discount: { startsAt: item.startsAt ?? startsAt, endsAt: item.endsAt ?? null, status: item.enabled ? 'SCHEDULED' : 'EXPIRED', combinesWith: { productDiscounts: true, orderDiscounts: true, shippingDiscounts: false } },
+    discount: { title: item.name || 'BOGO 买赠活动', startsAt: item.startsAt ?? startsAt, endsAt: item.endsAt ?? null, status: item.enabled ? 'SCHEDULED' : 'EXPIRED', combinesWith: { productDiscounts: true, orderDiscounts: true, shippingDiscounts: false } },
   });
   const query = vi.fn(async (document: string, { variables }: { variables: MockVariables }) => {
     const operation = /(?:query|mutation) (\w+)/.exec(document)?.[1];
@@ -66,11 +67,14 @@ function backend(campaigns: StoredCampaign[]) {
       const discount = variables.discount;
       if (!discount) throw new Error('缺少折扣创建参数');
       if (state.failCreate) return { data: { discountAutomaticAppCreate: { automaticAppDiscount: null, userErrors: [{ message: '已达到折扣数量上限' }] } } };
+      if ([...state.owners.values()].some(owner => owner.discount.title === discount.title)) {
+        return { data: { discountAutomaticAppCreate: { automaticAppDiscount: null, userErrors: [{ message: '对于自动折扣，标题必须唯一' }] } } };
+      }
       if (discount.endsAt && Date.parse(discount.endsAt) <= Date.parse(discount.startsAt)) {
         return { data: { discountAutomaticAppCreate: { automaticAppDiscount: null, userErrors: [{ message: '结束时间必须晚于开始时间' }] } } };
       }
       const id = ownerId(1000 + ++state.created);
-      state.owners.set(id, { id, campaignBinding: { jsonValue: JSON.parse(discount.metafields[0].value) }, discount: { startsAt: discount.startsAt, endsAt: discount.endsAt, status: 'SCHEDULED', combinesWith: discount.combinesWith } });
+      state.owners.set(id, { id, campaignBinding: { jsonValue: JSON.parse(discount.metafields[0].value) }, discount: { title: discount.title, startsAt: discount.startsAt, endsAt: discount.endsAt, status: 'SCHEDULED', combinesWith: discount.combinesWith } });
       if (state.loseCreateResponse) { state.loseCreateResponse = false; throw new Error('创建响应丢失'); }
       return { data: { discountAutomaticAppCreate: { automaticAppDiscount: { discountId: id }, userErrors: [] } } };
     }
@@ -97,6 +101,12 @@ function backend(campaigns: StoredCampaign[]) {
 }
 afterEach(() => vi.unstubAllGlobals());
 
+it('新 App 首次打开 NuPhyX 时不导入旧活动快照', () => {
+  const state = backend([]);
+  const settings: Settings = { ...state.settings, shop: { ...state.settings.shop, myshopifyDomain: 'q1j8s1-yq.myshopify.com', mode: null, config: null } };
+  expect(initialConfig(settings)).toEqual({ version: 1, campaigns: [] });
+});
+
 it('新活动先准备带绑定的原生排期，再发布 shop 配置', async () => {
   const state = backend([]);
   const draft = campaign('new', { startsAt, endsAt });
@@ -108,6 +118,9 @@ it('新活动先准备带绑定的原生排期，再发布 shop 配置', async (
   expect(state.owners.get(saved.nativeDiscount!.id)?.campaignBinding.jsonValue).toEqual({ campaignId: 'new', bindingToken: saved.nativeDiscount!.token });
   expect(saved.startsAt).toBe(startsAt);
   expect(draft.nativeDiscount).toBeUndefined();
+  expect(state.query.mock.calls.find(([document]) => document.includes('query BogoSettings'))?.[0]).toContain('nuphy_bonus_v2');
+  expect(state.query.mock.calls.find(([document]) => document.includes('mutation BogoCreateDiscount'))?.[1].variables.discount?.metafields[0].namespace).toBe('nuphy_bonus_v2');
+  expect(state.query.mock.calls.find(([document]) => document.includes('mutation BogoSave'))?.[1].variables.metafields?.map(field => field.namespace)).toEqual(['nuphy_bonus_v2', 'nuphy_bonus_v2']);
 });
 
 it('新 owner 创建失败不发布活动，输入保持原样', async () => {
@@ -244,6 +257,22 @@ it('保存和读回都断网后，再次保存能识别上次已成功而不报�
 });
 
 const ownedCampaign = () => ({ ...campaign('a', { startsAt, endsAt }), nativeDiscount: { id: ownerId(10), token: '0123456789abcdef0123456789abcdef' } });
+it('已结束活动改为立即开始时，保留活动名称并创建不同标题的折扣', async () => {
+  const original = { ...ownedCampaign(), startsAt: '2020-01-01T00:00:00.000Z', endsAt: '2020-02-01T00:00:00.000Z' };
+  const state = backend([original]);
+  const oldOwner = state.owners.get(original.nativeDiscount.id)!;
+  oldOwner.discount.status = 'EXPIRED';
+
+  const saved = initialConfig(await saveCampaign(copy(state.settings), original, { ...original, startsAt: undefined, endsAt: undefined })).campaigns[0];
+  const newOwner = state.owners.get(saved.nativeDiscount!.id)!;
+  expect(saved.name).toBe(original.name);
+  expect(saved.startsAt).toBeUndefined();
+  expect(saved.endsAt).toBeUndefined();
+  expect(newOwner.discount.title).toContain(original.name);
+  expect(newOwner.discount.title).not.toBe(oldOwner.discount.title);
+  expect(newOwner.discount.endsAt).toBeNull();
+  expect(state.created).toBe(1);
+});
 it('排期变化新建 owner，CAS 成功后才停用旧 owner', async () => {
   const original = ownedCampaign(); const state = backend([original]);
   const saved = await saveCampaign(copy(state.settings), original, { ...original, endsAt: '2030-03-01T00:00:00.000Z' });

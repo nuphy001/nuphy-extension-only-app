@@ -13,9 +13,6 @@ scopes = "read_products,write_discounts"
 [auth]
 redirect_urls = [ "https://shopify.dev/apps/default-app-home/api/auth" ]
 
-[webhooks]
-api_version = "2026-01"
-
 [build]
 automatically_update_urls_on_dev = true
 dev_store_url = "61style.myshopify.com"

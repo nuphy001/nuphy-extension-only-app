@@ -3,20 +3,11 @@
   "version": "1.0.0",
   "scripts": {
     "shopify": "shopify",
-    "build": "node scripts/run-shopify-environment.mjs development app build",
-    "dev": "node scripts/run-shopify-environment.mjs development app dev",
-    "info": "shopify app info",
+    "build": "shopify app build --config shopify.app.toml",
+    "dev": "shopify app dev --config shopify.app.toml",
+    "dev:61style": "shopify app dev --config shopify.app.toml --store 61style.myshopify.com",
     "generate": "shopify app generate",
-    "deploy": "node scripts/run-shopify-environment.mjs development app deploy",
-    "dev:test": "node scripts/run-shopify-environment.mjs development app dev",
-    "dev:61style": "node scripts/run-shopify-environment.mjs development app dev --config oooyi",
-    "info:production": "shopify app info --config production",
-    "deploy:test": "node scripts/run-shopify-environment.mjs development app deploy",
-    "deploy:production": "node scripts/run-shopify-environment.mjs production app deploy --config production",
-    "validate:test": "shopify app config validate --json",
-    "validate:production": "shopify app config validate --config production --json",
-    "build:test": "node scripts/run-shopify-environment.mjs development app build",
-    "build:production": "node scripts/run-shopify-environment.mjs production app build --config production"
+    "deploy": "shopify app deploy --config shopify.app.toml"
   },
   "trustedDependencies": [
     "@shopify/plugin-cloudflare"

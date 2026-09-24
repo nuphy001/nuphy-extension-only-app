@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { configuredCampaigns, parseConfig } from './configuration';
-import { goboFreeGiftDiscountFunction as production } from './cart_lines_discounts_generate_run.production';
-import { goboFreeGiftDiscountFunction as development } from './cart_lines_discounts_generate_run.development';
+import { goboFreeGiftDiscountFunction as run } from './cart_lines_discounts_generate_run';
 
 const gid = (type, id) => `gid://shopify/${type}/${id}`;
 const token = 'f07b2fbe-a04c-4016-b35d-c5c2a20b9876';
@@ -90,7 +89,17 @@ describe('Shopify 原生折扣与活动绑定', () => {
   });
 });
 
-describe.each([['production', production], ['development', development]])('%s 产品匹配与排除', (_name, run) => {
+describe('产品匹配与排除', () => {
+  it('缺少该店 managed 配置时不回退旧店铺的硬编码白名单', () => {
+    const oldTrigger = '49965619839216';
+    const oldGift = {
+      ...normal('49956279877872', '3'), attribute: { value: 'gift' },
+      promoIdAttr: { value: 'bogo-nuphyx-test' },
+      mainVariantAttr: { value: gid('ProductVariant', oldTrigger) },
+    };
+    expect(run({ shop: {}, discount: { campaignBinding: null }, cart: { lines: [normal(oldTrigger, '1'), oldGift] } }))
+      .toEqual({ operations: [] });
+  });
   it('未枚举的新规格属于整款产品，照常获得折扣', () => {
     expect(targets(run(input(campaign(), [normal('199', '1', 2), gift('199', 2)]))))
       .toEqual([{ cartLine: { id: 'line-31', quantity: 2 } }]);
