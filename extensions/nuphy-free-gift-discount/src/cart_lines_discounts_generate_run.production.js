@@ -46,7 +46,8 @@ const FREE_PERCENTAGE = 100;
 const DISCOUNT_MESSAGE = "Free Gift";
 
 // ─── Campaign config（与 headless-shop config.ts 同步） ───────────────────────
-const CAMPAIGNS = [
+function legacyCampaigns() {
+  return [
   // 键帽 赠品🎁 Free Summer Keycaps (2026) ───────────────
   {
     id: "bogo-V3-Keycaps-2026-0803",
@@ -325,7 +326,8 @@ const CAMPAIGNS = [
      'gid://shopify/ProductVariant/45773792182381',
     ]),
   },
-];
+  ];
+}
 
 
 
@@ -334,12 +336,16 @@ const CAMPAIGNS = [
  * @returns {RunResult}
  */
 export function goboFreeGiftDiscountFunction(input) {
+  const lines = input.cart.lines;
+  // Most carts have no gift line. They cannot receive this discount, so avoid
+  // parsing the shop configuration or building legacy variant sets for them.
+  if (!lines.some(line => line.attribute?.value === GIFT_ROLE)) return EMPTY_RESULT;
+
   // 未切换店铺继续使用原白名单；切换后只读取页面保存的配置。
   const campaigns = input.shop?.promotionMode
     ? configuredCampaigns(input.shop.promotionMode.value, input.shop.promotionConfig?.jsonValue)
-    : CAMPAIGNS;
+    : legacyCampaigns();
   const CAMPAIGN_BY_ID = new Map(campaigns.map(c => [c.id, c]));
-  const lines = input.cart.lines;
 
   // 单次遍历非赠品行：
   //   nonGiftVariantIds   —— 「主品在 cart 内」校验（4b）用

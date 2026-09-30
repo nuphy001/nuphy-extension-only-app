@@ -279,3 +279,43 @@ describe('页面配置切换', () => {
     expect(goboFreeGiftDiscountFunction(input)).toEqual({ operations: [] });
   });
 });
+
+describe('生产活动与旧配置兼容', () => {
+  it('Kick75 后台活动：真实赠品获得 100% 折扣', () => {
+    const campaignId = 'bogo-mttybee7-o3uwkp';
+    const mainVariantId = 'gid://shopify/ProductVariant/43805710352493';
+    const giftVariantId = 'gid://shopify/ProductVariant/45773792575597';
+    const input = makeInput([
+      makeLine({ id: 'KICK75', variantId: mainVariantId }),
+      makeLine({
+        id: 'GIFT', variantId: giftVariantId, role: 'gift',
+        promoId: campaignId, mainVariant: mainVariantId,
+      }),
+    ]);
+    input.shop.promotionConfig.jsonValue.campaigns = [{
+      id: campaignId, name: 'bogo-Kick75-2026-0909', enabled: true,
+      triggerVariantIds: ['43805710352493'],
+      gifts: [{ variantId: '45773792575597' }],
+    }];
+
+    const result = goboFreeGiftDiscountFunction(input);
+    expect(getTargets(result)).toEqual([{ cartLine: { id: 'GIFT', quantity: 1 } }]);
+    expect(result.operations[0].productDiscountsAdd.candidates[0].value.percentage.value).toBe(100);
+  });
+
+  it('未启用后台管理时，旧活动白名单仍可发折扣', () => {
+    const input = makeInput([
+      makeLine({ id: 'MAIN', variantId: 'gid://shopify/ProductVariant/42579051315309' }),
+      makeLine({
+        id: 'GIFT', variantId: 'gid://shopify/ProductVariant/45378325839981',
+        role: 'gift', promoId: 'bogo-V3-Keycaps-2026-0803',
+        mainVariant: 'gid://shopify/ProductVariant/42579051315309',
+      }),
+    ]);
+    input.shop = {};
+
+    expect(getTargets(goboFreeGiftDiscountFunction(input))).toEqual([
+      { cartLine: { id: 'GIFT', quantity: 1 } },
+    ]);
+  });
+});
