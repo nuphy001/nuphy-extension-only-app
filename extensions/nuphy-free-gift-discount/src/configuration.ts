@@ -24,11 +24,10 @@ export function configBytes(value: string): number {
   }
   return bytes;
 }
-export function parseConfig(value: unknown): StoredConfig {
+function parseCampaigns(value: unknown): StoredConfig {
   if (!record(value) || value.version !== 1 || !Array.isArray(value.campaigns)) {
     throw new Error('活动配置格式或版本不正确');
   }
-  if (configBytes(JSON.stringify(value)) > 10000) throw new Error('活动配置超过容量，请减少不再使用的活动或商品变体');
   const ids = new Set<string>();
   const campaigns = value.campaigns.map((campaign: unknown): StoredCampaign => {
     if (!record(campaign)
@@ -58,10 +57,19 @@ export function parseConfig(value: unknown): StoredConfig {
   return { version: 1, campaigns };
 }
 
+export function parseConfig(value: unknown): StoredConfig {
+  const config = parseCampaigns(value);
+  if (configBytes(JSON.stringify(value)) > 10000) throw new Error('活动配置超过容量，请减少不再使用的活动或商品变体');
+  return config;
+}
+
 export function configuredCampaigns(mode: string | undefined, value: unknown) {
   if (mode !== 'managed') return [];
   try {
-    return parseConfig(value).campaigns.filter(campaign => campaign.enabled).map(campaign => ({
+    // Capacity is checked by the manager before saving. Re-serializing the
+    // metafield and counting every UTF-8 character here costs millions of
+    // Wasm instructions. Keep schema and variant allowlist validation.
+    return parseCampaigns(value).campaigns.filter(campaign => campaign.enabled).map(campaign => ({
       id: campaign.id,
       triggerVariantIds: new Set(campaign.triggerVariantIds.map(id => `gid://shopify/ProductVariant/${id}`)),
       giftVariantIds: new Set(campaign.gifts.map(gift => `gid://shopify/ProductVariant/${gift.variantId}`)),
