@@ -18,6 +18,9 @@ import {
 
 export default async () => { render(<App />, document.body); };
 const empty: StoredConfig = { version: 1, campaigns: [] };
+// 赠品自动折扣依赖 read_discounts / write_discounts 权限，只有已授权的店铺才显示这块入口。
+// 生产店铺与测试店铺都已授权，其余店铺（如日本店铺）暂不显示，避免点开就报权限错误。
+const DISCOUNT_SETUP_DOMAINS = ['nuphy-store.myshopify.com', 'q1j8s1-yq.myshopify.com'];
 const errorMessage = (error: unknown) => {
   const message = error instanceof Error ? error.message : '';
   if (message.includes('INVALID_COMPARE_DIGEST') || message.includes('其他人修改')) return '这条活动刚刚被别人改过了。请先重新加载，再重新保存。';
@@ -47,7 +50,7 @@ function App() {
   const pickerModal = useRef<HTMLElementTagNameMap['s-modal'] | null>(null);
   const dirty = JSON.stringify(config) !== JSON.stringify(saved);
   const selected = config.campaigns.find(campaign => campaign.id === selectedId);
-  const discountSetupEnabled = settings?.shop.myshopifyDomain === 'nuphy-store.myshopify.com';
+  const discountSetupEnabled = !!settings && DISCOUNT_SETUP_DOMAINS.includes(settings.shop.myshopifyDomain);
 
   useEffect(() => {
     if (pickerRole) pickerModal.current?.showOverlay?.();

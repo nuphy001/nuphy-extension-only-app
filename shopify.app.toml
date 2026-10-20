@@ -14,7 +14,8 @@ api_version = "2026-01"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_products"
+# read_discounts / write_discounts 供首页「创建并启用 Free Gift 自动折扣」按钮使用
+scopes = "read_products,read_discounts,write_discounts"
 
 [auth]
 redirect_urls = [ "https://shopify.dev/apps/default-app-home/api/auth" ]
