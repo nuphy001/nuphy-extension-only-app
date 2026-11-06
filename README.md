@@ -6,7 +6,23 @@ This is a template for building an [extension-only Shopify app](https://shopify.
 
 ## Extensions in this App
 
-`client_id = "1dfa5ac4c1e95115a158b547c4228540"` · 已安装授权到生产店铺 · 共存多个 Function extension。
+### 环境与 App
+
+| 环境 | App 名称 | 只安装到 | 配置文件 | App ID（client_id） | 发布命令 |
+| --- | --- | --- | --- | --- | --- |
+| 测试 | `Test Promo Checkout` | 测试店 `q1j8s1-yq.myshopify.com` | `shopify.app.test.toml` | `5da33ea7a94a1bd5dce36b4f4c0fc37b` | `npm run deploy:test` |
+| 全球生产 | `Global Promo Checkout` | 生产店 `nuphy-store.myshopify.com` | `shopify.app.production.toml` | `ea8902f04f9c9f1c5f6fd7ed25500b71` | `npm run deploy:production` |
+| 日本 | `Japan Promo Checkout` | 日本店铺（域名待补充） | `shopify.app.japan.toml` | `0b479bbf5423a03aef633015db413c8d` | `npm run deploy:japan` |
+
+> **注意：** App 版本按 App 生效，发布后装了该 App 的所有店铺都会立即更新，所以每个 App 只安装到对应的一个店铺。
+
+发布前先核对 `client_id`，确认目标 App：
+
+```bash
+grep -H '^client_id' shopify.app*.toml
+```
+
+### Extensions
 
 | Handle | Target | 作用 | 文档 |
 | --- | --- | --- | --- |
@@ -17,10 +33,12 @@ This is a template for building an [extension-only Shopify app](https://shopify.
 
 ```bash
 npm install                                             # 装全部 workspace 依赖
-pnpm build     # 测试店铺                                # 构建所有 extension 的 wasm
-pnpm deploy    # 测试店铺
-pnpm build:production            # 生产店铺              # 部署所有 extension 到当前 App
-pnpm deploy:production           # 生产店铺              # 部署所有 extension 到当前 App
+npm run build:test                                      # 构建测试环境
+npm run deploy:test                                     # 发布测试环境（见上方注意事项）
+npm run build:production                                # 构建全球生产环境
+npm run deploy:production                               # 发布全球生产环境
+npm run build:japan                                     # 构建日本环境
+npm run deploy:japan                                    # 发布日本环境
 npm --workspace <handle> run test -- --run              # 跑指定 extension 的 vitest 用例
 ```
 

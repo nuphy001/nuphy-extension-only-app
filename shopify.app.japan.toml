@@ -3,7 +3,7 @@
 client_id = "0b479bbf5423a03aef633015db413c8d"
 application_url = "https://shopify.dev/apps/default-app-home"
 embedded = true
-name = "nuphy-japan-extension-app"
+name = "Japan Promo Checkout"
 
 [webhooks]
 api_version = "2026-01"

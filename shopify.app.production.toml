@@ -1,7 +1,7 @@
 # Production configuration. Always select it explicitly with --config production.
 
 client_id = "ea8902f04f9c9f1c5f6fd7ed25500b71"
-name = "nuphy-extension-only-app"
+name = "Global Promo Checkout"
 application_url = "https://shopify.dev/apps/default-app-home"
 embedded = true
 
