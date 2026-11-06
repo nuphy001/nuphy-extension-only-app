@@ -4,6 +4,8 @@ export interface StoredCampaign {
   enabled: boolean;
   showLabel?: boolean;
   triggerQuantity?: number;
+  /** 'size-priority'：gifts 是候选池，商城按配列顺序和实时库存分配。不填时每个 gifts 变体都直接送。 */
+  giftAllocation?: 'size-priority';
   triggerVariantIds: string[];
   gifts: { variantId: string }[];
 }
@@ -37,6 +39,7 @@ function parseCampaigns(value: unknown): StoredConfig {
       || (campaign.showLabel !== undefined && typeof campaign.showLabel !== 'boolean')
       || (campaign.triggerQuantity !== undefined && (typeof campaign.triggerQuantity !== 'number'
         || !Number.isInteger(campaign.triggerQuantity) || campaign.triggerQuantity < 1 || campaign.triggerQuantity > 2147483647))
+      || (campaign.giftAllocation !== undefined && campaign.giftAllocation !== 'size-priority')
       || !Array.isArray(campaign.triggerVariantIds) || !campaign.triggerVariantIds.length
       || !campaign.triggerVariantIds.every(variant)
       || new Set(campaign.triggerVariantIds).size !== campaign.triggerVariantIds.length
@@ -51,6 +54,7 @@ function parseCampaigns(value: unknown): StoredConfig {
       id: campaign.id, name: campaign.name as string | undefined, enabled: campaign.enabled,
       showLabel: campaign.showLabel as boolean | undefined,
       triggerQuantity: campaign.triggerQuantity as number | undefined,
+      giftAllocation: campaign.giftAllocation as StoredCampaign['giftAllocation'],
       triggerVariantIds: campaign.triggerVariantIds, gifts,
     };
   });

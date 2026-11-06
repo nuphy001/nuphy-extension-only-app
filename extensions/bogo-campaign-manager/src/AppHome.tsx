@@ -108,7 +108,7 @@ function App() {
     setBusy(true); setError(''); setNotice('');
     try {
       if (config.campaigns.some(campaign => !campaign.name?.trim())) throw new Error('请填写每个活动的名称');
-      const multiGift = config.campaigns.filter(campaign => campaign.gifts.length !== 1);
+      const multiGift = config.campaigns.filter(campaign => !campaign.giftAllocation && campaign.gifts.length !== 1);
       if (multiGift.length) throw new Error(`每个活动只能选择一个赠品变体，请修改后再保存：${multiGift.map(campaign => campaign.name || campaign.id).join('、')}`);
       const next = await saveSettings(settings, config);
       setSettings(next); setSaved(config);
@@ -183,19 +183,26 @@ function App() {
               <s-switch label="启用这个活动" checked={selected.enabled} disabled={busy} onChange={event => update(selected.id, { enabled: event.currentTarget.checked })} />
               <s-switch label="显示 FREE GIFT 标签" checked={selected.showLabel ?? true} disabled={busy} onChange={event => update(selected.id, { showLabel: event.currentTarget.checked })} />
               <s-paragraph>这个开关只控制购物车赠品商品左上角的Free gift标签。关掉后只是不显示标签，赠品和折扣仍然照常生效。</s-paragraph>
-              <s-select label="赠送数量" value={selected.triggerQuantity === undefined ? 'follow' : 'fixed'} disabled={busy} onChange={event => update(selected.id, { triggerQuantity: event.currentTarget.value === 'fixed' ? 1 : undefined })}>
+              <s-select label="赠品分配方式" value={selected.giftAllocation ?? 'single'} disabled={busy} onChange={event => update(selected.id, event.currentTarget.value === 'size-priority'
+                ? { giftAllocation: 'size-priority', triggerQuantity: undefined }
+                : { giftAllocation: undefined })}>
+                <s-option value="single">固定送一个赠品变体</s-option>
+                <s-option value="size-priority">从多个赠品变体中，按配列顺序和实时库存分配（配列顺序由商城代码维护）</s-option>
+              </s-select>
+              {!selected.giftAllocation && <><s-select label="赠送数量" value={selected.triggerQuantity === undefined ? 'follow' : 'fixed'} disabled={busy} onChange={event => update(selected.id, { triggerQuantity: event.currentTarget.value === 'fixed' ? 1 : undefined })}>
                 <s-option value="follow">买几个主商品，就送几个赠品</s-option>
                 <s-option value="fixed">无论买几个主商品，只送固定数量赠品</s-option>
               </s-select>
               {selected.triggerQuantity !== undefined && <s-number-field label="固定送几个赠品" value={String(selected.triggerQuantity)} min={1} step={1} disabled={busy} onInput={event => update(selected.id, { triggerQuantity: Number(event.currentTarget.value) })} />}
-              <s-paragraph>数量设置只影响购物车里加几个赠品，免单规则保持不变。</s-paragraph>
+              <s-paragraph>数量设置只影响购物车里加几个赠品，免单规则保持不变。</s-paragraph></>}
               <s-button disabled={busy} onClick={() => setPickerRole('trigger')}>2. 选择买什么（主商品）</s-button>
               <VariantList ids={selected.triggerVariantIds} variants={variants} />
-              <s-button disabled={busy} onClick={() => setPickerRole('gift')}>3. 选择送什么（赠品，只能选一个变体）</s-button>
+              <s-button disabled={busy} onClick={() => setPickerRole('gift')}>{selected.giftAllocation ? '3. 选择送什么（赠品候选，可多选，包含当前无库存的变体）' : '3. 选择送什么（赠品，只能选一个变体）'}</s-button>
               <VariantList ids={selected.gifts.map(gift => gift.variantId)} variants={variants} />
-              <s-modal ref={pickerModal} heading={pickerRole === 'trigger' ? '选择买什么' : '选择送什么（赠品只能选一个变体）'} size="large-100" accessibilityLabel="选择活动商品" onHide={() => setPickerRole(null)}>
+              <s-modal ref={pickerModal} heading={pickerRole === 'trigger' ? '选择买什么' : selected.giftAllocation ? '选择送什么（赠品候选）' : '选择送什么（赠品只能选一个变体）'} size="large-100" accessibilityLabel="选择活动商品" onHide={() => setPickerRole(null)}>
                 {pickerRole && <ProductSelector key={`${selected.id}-${pickerRole}`}
                   role={pickerRole}
+                  multipleGifts={!!selected.giftAllocation}
                   initial={pickerRole === 'trigger' ? selected.triggerVariantIds : selected.gifts.map(gift => gift.variantId)}
                   known={variants} onCancel={() => setPickerRole(null)}
                   onSelect={(ids, products) => {
@@ -251,11 +258,11 @@ function groupByProduct(ids: string[], details: Record<string, Variant>): Varian
   return groups;
 }
 
-function ProductSelector({ role, initial, known, onCancel, onSelect }: {
-  role: 'trigger' | 'gift'; initial: string[]; known: Record<string, Variant>; onCancel: () => void;
+function ProductSelector({ role, multipleGifts, initial, known, onCancel, onSelect }: {
+  role: 'trigger' | 'gift'; multipleGifts: boolean; initial: string[]; known: Record<string, Variant>; onCancel: () => void;
   onSelect: (ids: string[], products: Record<string, Variant>) => void;
 }) {
-  const single = role === 'gift';
+  const single = role === 'gift' && !multipleGifts;
   const [search, setSearch] = useState('');
   const [request, setRequest] = useState<{ search: string; after: string | null }>({ search: '', after: null });
   const [products, setProducts] = useState<Variant[]>([]);

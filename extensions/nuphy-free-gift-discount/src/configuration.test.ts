@@ -23,6 +23,20 @@ describe('campaign configuration validation', () => {
     expect(campaign.giftVariantIds.has('gid://shopify/ProductVariant/43805710352493')).toBe(false);
   });
 
+  it('keeps size-priority allocation and its gift candidates through a save', () => {
+    const value = config();
+    value.campaigns[0].gifts.push({ variantId: '45773792575598' });
+    const stored = { ...value, campaigns: [{ ...value.campaigns[0], giftAllocation: 'size-priority' }] };
+    expect(parseConfig(stored).campaigns[0]?.giftAllocation).toBe('size-priority');
+    const [campaign] = configuredCampaigns('managed', stored);
+    expect(campaign.giftVariantIds.size).toBe(2);
+  });
+
+  it('fails closed for an unknown gift allocation', () => {
+    const value = config();
+    expect(configuredCampaigns('managed', { ...value, campaigns: [{ ...value.campaigns[0], giftAllocation: 'random' }] })).toEqual([]);
+  });
+
   it('fails closed for malformed variant IDs', () => {
     const value = config();
     value.campaigns[0].triggerVariantIds = ['43805710352493', 'not-a-variant'];
