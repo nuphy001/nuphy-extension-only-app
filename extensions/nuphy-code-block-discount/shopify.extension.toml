@@ -1,0 +1,17 @@
+api_version = "2026-01"
+
+[[extensions]]
+name = "t:name"
+handle = "nuphy-code-block-discount"
+uid = "6af3ad1a-16d9-039e-8f82-9d750fa398dc7fb31271"
+type = "function"
+description = "t:description"
+
+  [[extensions.targeting]]
+  target = "cart.lines.discounts.generate.run"
+  input_query = "src/cart_lines_discounts_generate_run.graphql"
+  export = "cart-lines-discounts-generate-run"
+
+  [extensions.build]
+  command = ""
+  path = "dist/function.wasm"

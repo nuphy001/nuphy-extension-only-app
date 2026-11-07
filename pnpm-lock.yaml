@@ -34,6 +34,16 @@ importers:
         specifier: 2.1.9
         version: 2.1.9(@types/node@26.1.0)(supports-color@7.2.0)
 
+  extensions/nuphy-code-block-discount:
+    dependencies:
+      '@shopify/shopify_function':
+        specifier: 2.0.0
+        version: 2.0.0(@types/node@26.1.0)(graphql-sock@1.0.1(graphql@16.11.0))(supports-color@7.2.0)
+    devDependencies:
+      vitest:
+        specifier: 2.1.9
+        version: 2.1.9(@types/node@26.1.0)(supports-color@7.2.0)
+
   extensions/nuphy-free-gift-discount:
     dependencies:
       '@shopify/shopify_function':

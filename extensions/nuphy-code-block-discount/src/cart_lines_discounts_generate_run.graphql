@@ -1,0 +1,11 @@
+query CartLinesDiscountsGenerateRun {
+  enteredDiscountCodes {
+    code
+    rejectable
+  }
+  localization {
+    language {
+      isoCode
+    }
+  }
+}

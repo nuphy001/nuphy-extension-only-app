@@ -8,6 +8,7 @@ import {
   productByHandleQuery,
   freeGiftDiscountStatusQuery,
   createFreeGiftDiscountMutation,
+  codeBlockDiscountStatusQuery,
 } from './queries';
 import legacy from './legacy-campaigns.json';
 
@@ -166,4 +167,89 @@ export async function createFreeGiftDiscount(): Promise<FreeGiftDiscountStatus> 
   const created = result.discountAutomaticAppCreate.automaticAppDiscount;
   if (!created) throw new Error('Shopify 没有返回新折扣，请刷新后确认');
   return { exists: true, active: created.status === 'ACTIVE', discountId: created.discountId, status: created.status };
+}
+
+// 黑五拒券的活动时间只在这里配置：北京时间 2026-11-09 16:00 至 2026-12-02 15:59。
+const CODE_BLOCK_TITLE = 'Black Friday Code Block';
+const CODE_BLOCK_STARTS_AT = '2026-11-09T08:00:00Z';
+const CODE_BLOCK_ENDS_AT = '2026-12-02T07:59:00Z';
+const CODE_BLOCK_REHEARSAL_TITLE = 'Code Block Rehearsal';
+const CODE_BLOCK_REHEARSAL_MINUTES = 30;
+
+type CodeBlockNode = {
+  id: string;
+  discount: { __typename: string; title?: string; status?: string; startsAt?: string; endsAt?: string | null; appDiscountType?: { functionId: string } };
+};
+export type CodeBlockDiscount = { id: string; title: string; status: string; startsAt: string; endsAt: string | null };
+export type CodeBlockDiscountStatus = {
+  sale: CodeBlockDiscount | null;
+  rehearsal: CodeBlockDiscount | null;
+};
+
+export async function loadCodeBlockDiscount(): Promise<CodeBlockDiscountStatus> {
+  const result = await query<{
+    shopifyFunctions: { nodes: FunctionNode[] };
+    discountNodes: { nodes: CodeBlockNode[] };
+  }>(codeBlockDiscountStatusQuery);
+  const fn = result.shopifyFunctions.nodes.find(node => node.apiType === 'discount' && node.title === 'nuphy-code-block-discount');
+  if (!fn) throw new Error('App 中没有找到 nuphy-code-block-discount，请先发布 Function');
+  const discounts = result.discountNodes.nodes
+    .filter(node => node.discount.__typename === 'DiscountAutomaticApp' && node.discount.appDiscountType?.functionId === fn.id)
+    .map(({ id, discount }): CodeBlockDiscount => ({
+      id,
+      title: discount.title ?? '',
+      status: discount.status ?? '',
+      startsAt: discount.startsAt ?? '',
+      endsAt: discount.endsAt ?? null,
+    }));
+  return {
+    sale: discounts.find(discount => discount.title === CODE_BLOCK_TITLE) ?? null,
+    rehearsal: discounts.find(discount => discount.title.startsWith(CODE_BLOCK_REHEARSAL_TITLE) && discount.status === 'ACTIVE') ?? null,
+  };
+}
+
+// 折扣搜索有索引延迟，刚创建时查不到，所以直接用创建结果，避免页面误判后重复创建。
+async function createCodeBlockDiscount(input: { title: string; startsAt: string; endsAt: string; context?: unknown }): Promise<CodeBlockDiscount> {
+  const result = await query<{
+    discountAutomaticAppCreate: {
+      automaticAppDiscount: { discountId: string; title: string; status: string } | null;
+      userErrors: UserError[];
+    };
+  }>(createFreeGiftDiscountMutation, {
+    discount: {
+      functionHandle: 'nuphy-code-block-discount',
+      discountClasses: ['PRODUCT'],
+      combinesWith: { orderDiscounts: true, productDiscounts: true, shippingDiscounts: true },
+      ...input,
+    },
+  });
+  checkErrors(result.discountAutomaticAppCreate.userErrors);
+  const created = result.discountAutomaticAppCreate.automaticAppDiscount;
+  if (!created) throw new Error('Shopify 没有返回新折扣，请刷新后确认');
+  return { id: created.discountId, title: created.title, status: created.status, startsAt: input.startsAt, endsAt: input.endsAt };
+}
+
+export async function createCodeBlockSaleDiscount(): Promise<CodeBlockDiscountStatus> {
+  const current = await loadCodeBlockDiscount();
+  if (current.sale) return current;
+  const sale = await createCodeBlockDiscount({ title: CODE_BLOCK_TITLE, startsAt: CODE_BLOCK_STARTS_AT, endsAt: CODE_BLOCK_ENDS_AT });
+  return { ...current, sale };
+}
+
+/**
+ * 演练折扣立即生效并自动过期；填了客户就只影响该客户。
+ * 开始时间往前推一天，避免操作电脑的时钟偏快时折扣变成“已安排”而没有生效。
+ */
+export async function createCodeBlockRehearsal(customerId: string): Promise<CodeBlockDiscountStatus> {
+  const current = await loadCodeBlockDiscount();
+  if (current.rehearsal) return current;
+  const now = Date.now();
+  const rehearsal = await createCodeBlockDiscount({
+    // 自动折扣标题必须唯一，带上时间才能重复演练。
+    title: `${CODE_BLOCK_REHEARSAL_TITLE} ${new Date(now).toISOString().slice(0, 16)}`,
+    startsAt: new Date(now - 24 * 60 * 60_000).toISOString(),
+    endsAt: new Date(now + CODE_BLOCK_REHEARSAL_MINUTES * 60_000).toISOString(),
+    ...(customerId ? { context: { customers: { add: [customerId] } } } : {}),
+  });
+  return { ...current, rehearsal };
 }

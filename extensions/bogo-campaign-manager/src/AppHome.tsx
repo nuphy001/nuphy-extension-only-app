@@ -3,14 +3,18 @@ import { render } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { configBytes, type StoredCampaign, type StoredConfig } from '../../nuphy-free-gift-discount/src/configuration';
 import {
+  createCodeBlockRehearsal,
+  createCodeBlockSaleDiscount,
   createFreeGiftDiscount,
   initialConfig,
+  loadCodeBlockDiscount,
   loadFreeGiftDiscount,
   loadProductByHandle,
   loadSettings,
   loadVariants,
   saveSettings,
   searchVariants,
+  type CodeBlockDiscountStatus,
   type FreeGiftDiscountStatus,
   type Settings,
   type Variant,
@@ -47,6 +51,10 @@ function App() {
   const [discountStatus, setDiscountStatus] = useState<FreeGiftDiscountStatus | null>(null);
   const [discountBusy, setDiscountBusy] = useState(true);
   const [discountError, setDiscountError] = useState('');
+  const [codeBlock, setCodeBlock] = useState<CodeBlockDiscountStatus | null>(null);
+  const [codeBlockBusy, setCodeBlockBusy] = useState(true);
+  const [codeBlockError, setCodeBlockError] = useState('');
+  const [rehearsalCustomerId, setRehearsalCustomerId] = useState('');
   const pickerModal = useRef<HTMLElementTagNameMap['s-modal'] | null>(null);
   const dirty = JSON.stringify(config) !== JSON.stringify(saved);
   const selected = config.campaigns.find(campaign => campaign.id === selectedId);
@@ -91,6 +99,29 @@ function App() {
       .finally(() => { if (!cancelled) setDiscountBusy(false); });
     return () => { cancelled = true; };
   }, [discountSetupEnabled, loadAttempt]);
+
+  useEffect(() => {
+    if (!discountSetupEnabled) {
+      setCodeBlock(null); setCodeBlockError(''); setCodeBlockBusy(false);
+      return;
+    }
+    let cancelled = false;
+    setCodeBlockBusy(true); setCodeBlockError('');
+    loadCodeBlockDiscount()
+      .then(status => { if (!cancelled) setCodeBlock(status); })
+      .catch(cause => { if (!cancelled) setCodeBlockError(errorMessage(cause)); })
+      .finally(() => { if (!cancelled) setCodeBlockBusy(false); });
+    return () => { cancelled = true; };
+  }, [discountSetupEnabled, loadAttempt]);
+
+  async function runCodeBlockAction(action: () => Promise<CodeBlockDiscountStatus>) {
+    setCodeBlockBusy(true); setCodeBlockError(''); setNotice('');
+    try {
+      setCodeBlock(await action());
+    } catch (cause) {
+      setCodeBlockError(errorMessage(cause));
+    } finally { setCodeBlockBusy(false); }
+  }
 
   function update(id: string, patch: Partial<StoredCampaign>) {
     setConfig(previous => ({ ...previous, campaigns: previous.campaigns.map(campaign => campaign.id === id ? { ...campaign, ...patch } : campaign) }));
@@ -150,6 +181,20 @@ function App() {
               {!discountBusy && discountStatus?.active && <s-banner tone="success">Free Gift 自动折扣已启用，并允许和商品、订单、运费折扣叠加。</s-banner>}
               {!discountBusy && discountStatus?.exists && !discountStatus.active && <s-banner tone="warning">Free Gift 折扣已存在，但当前状态是 {discountStatus.status ?? '未知'}。请到“折扣”页面重新启用。</s-banner>}
               {!discountBusy && discountStatus && !discountStatus.exists && <s-button variant="primary" onClick={() => void createDiscount()}>创建并启用 Free Gift 自动折扣</s-button>}
+            </s-stack>
+          </s-section>}
+          {discountSetupEnabled && <s-section heading="黑五禁用折扣码">
+            <s-stack gap="base">
+              <s-paragraph>启用后，结账时输入的折扣码都会被拒绝，只保留自动折扣。要提前恢复折扣码，到“折扣”页面停用这条折扣即可。</s-paragraph>
+              {codeBlockBusy && <s-spinner accessibilityLabel="正在检查黑五拒券折扣" />}
+              {codeBlockError && <s-banner tone="critical">{codeBlockError}</s-banner>}
+              {!codeBlockBusy && codeBlock?.sale && <s-banner tone="success">正式折扣已创建，状态 {codeBlock.sale.status}，时间 {codeBlock.sale.startsAt} 至 {codeBlock.sale.endsAt}（UTC）。</s-banner>}
+              {!codeBlockBusy && codeBlock && !codeBlock.sale && <s-button variant="primary" onClick={() => void runCodeBlockAction(createCodeBlockSaleDiscount)}>创建正式折扣（北京时间 11-09 16:00 至 12-02 15:59）</s-button>}
+              {!codeBlockBusy && codeBlock?.rehearsal && <s-banner tone="warning">演练折扣生效中，状态 {codeBlock.rehearsal.status}，{codeBlock.rehearsal.endsAt}（UTC）自动结束。</s-banner>}
+              {!codeBlockBusy && codeBlock && !codeBlock.rehearsal && <s-stack gap="base">
+                <s-text-field label="演练客户 ID（gid://shopify/Customer/...）" details="留空会影响所有顾客，正式店必须填写" value={rehearsalCustomerId} onInput={event => setRehearsalCustomerId(event.currentTarget.value.trim())} />
+                <s-button onClick={() => void runCodeBlockAction(() => createCodeBlockRehearsal(rehearsalCustomerId))} disabled={settings.shop.myshopifyDomain === 'nuphy-store.myshopify.com' && !rehearsalCustomerId}>创建 30 分钟演练折扣</s-button>
+              </s-stack>}
             </s-stack>
           </s-section>}
           <s-section heading="活动管理">
