@@ -63,6 +63,27 @@ export const freeGiftDiscountStatusQuery = `query FreeGiftDiscountStatus {
   }
 }`;
 
+export const codeBlockDiscountStatusQuery = `query CodeBlockDiscountStatus {
+  shopifyFunctions(first: 25) {
+    nodes { id title apiType }
+  }
+  discountNodes(first: 20, query: "title:Code Block") {
+    nodes {
+      id
+      discount {
+        __typename
+        ... on DiscountAutomaticApp {
+          title
+          status
+          startsAt
+          endsAt
+          appDiscountType { functionId title }
+        }
+      }
+    }
+  }
+}`;
+
 export const createFreeGiftDiscountMutation = `mutation CreateFreeGiftDiscount($discount: DiscountAutomaticAppInput!) {
   discountAutomaticAppCreate(automaticAppDiscount: $discount) {
     automaticAppDiscount { discountId title status }
