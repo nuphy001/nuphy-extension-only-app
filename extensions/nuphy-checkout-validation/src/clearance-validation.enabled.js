@@ -29,7 +29,7 @@ export function getClearanceValidationErrors(input) {
   }
   if (hasClearance && hasRegular) {
     errors.push({
-      message: "Refurbished and regular products ship from different warehouses and must be ordered separately. Please return to your cart, remove either group of products, and try again.",
+      message: "Refurbished items ship from a separate warehouse and must be ordered separately from other products. Please remove all non-refurbished items from your cart before proceeding to checkout.",
       target: "$.cart",
     });
   }
