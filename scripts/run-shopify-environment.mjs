@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -13,10 +13,35 @@ if (!supportedEnvironments.has(environment) || shopifyArgs.length === 0) {
   process.exit(1);
 }
 
+// Require an explicit known app instead of relying on the CLI's remembered app.
+let appConfig = process.env.SHOPIFY_FLAG_APP_CONFIG;
+for (let index = 0; index < shopifyArgs.length; index += 1) {
+  const argument = shopifyArgs[index];
+  if (argument === '--config' || argument === '-c') {
+    appConfig = shopifyArgs[++index];
+  } else if (argument.startsWith('--config=') || argument.startsWith('-c=')) {
+    appConfig = argument.slice(argument.indexOf('=') + 1);
+  }
+}
+const configFilename = (appConfig ?? '').replaceAll('\\', '/').split('/').pop().toLowerCase();
+const configName = configFilename.replace(/^shopify\.app\.(test|production|japan)\.toml$/, '$1');
+if (!new Set(['test', 'production', 'japan']).has(configName)) {
+  console.error('Pass an explicit --config test, production, or japan (or its shopify.app.*.toml path).');
+  process.exit(1);
+}
+
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const selectorPath = resolve(
   repositoryRoot,
   'extensions/nuphy-free-gift-discount/src/cart_lines_discounts_generate_run.js',
+);
+const clearanceSelectorPath = resolve(
+  repositoryRoot,
+  'extensions/nuphy-checkout-validation/src/clearance-validation.js',
+);
+const checkoutQueryPath = resolve(
+  repositoryRoot,
+  'extensions/nuphy-checkout-validation/src/cart_validations_generate_run.graphql',
 );
 
 function selectImplementation(selectedEnvironment) {
@@ -27,10 +52,37 @@ function selectImplementation(selectedEnvironment) {
   );
 }
 
+function withoutClearanceFields(query) {
+  const lines = query.split(/\r?\n/);
+  const starts = lines.flatMap((line, index) => line.trim() === '# BEGIN CLEARANCE_CHECKOUT' ? [index] : []);
+  const ends = lines.flatMap((line, index) => line.trim() === '# END CLEARANCE_CHECKOUT' ? [index] : []);
+  if (starts.length !== 1 || ends.length !== 1 || starts[0] >= ends[0]) {
+    throw new Error('Expected exactly one complete CLEARANCE_CHECKOUT query block for the Japan build.');
+  }
+  lines.splice(starts[0], ends[0] - starts[0] + 1);
+  return lines.join(query.includes('\r\n') ? '\r\n' : '\n');
+}
+
 let exitCode = 1;
-selectImplementation(environment);
+let originalClearanceSelector;
+let originalCheckoutQuery;
 
 try {
+  const clearanceSelector = readFileSync(clearanceSelectorPath);
+  const checkoutQuery = readFileSync(checkoutQueryPath);
+  const japanQuery = withoutClearanceFields(checkoutQuery.toString('utf8'));
+  const selectorExport = clearanceSelector.toString('utf8').replace(/^\/\/.*$/gm, '').trim();
+  if (selectorExport !== "export { getClearanceValidationErrors } from './clearance-validation.enabled.js';") {
+    throw new Error('Restore the default enabled clearance selector before building any app.');
+  }
+  selectImplementation(environment);
+  if (configName === 'japan') {
+    originalClearanceSelector = clearanceSelector;
+    originalCheckoutQuery = checkoutQuery;
+    writeFileSync(clearanceSelectorPath, 'export function getClearanceValidationErrors() { return []; }\n', 'utf8');
+    writeFileSync(checkoutQueryPath, japanQuery, 'utf8');
+  }
+
   const result = spawnSync('shopify', shopifyArgs, {
     cwd: repositoryRoot,
     stdio: 'inherit',
@@ -40,8 +92,16 @@ try {
   if (result.error) throw result.error;
   exitCode = result.status ?? 1;
 } finally {
-  // A bare import/build is always safe: it points back to the test-store implementation.
-  selectImplementation('development');
+  try {
+    if (originalCheckoutQuery) writeFileSync(checkoutQueryPath, originalCheckoutQuery);
+  } finally {
+    try {
+      if (originalClearanceSelector) writeFileSync(clearanceSelectorPath, originalClearanceSelector);
+    } finally {
+      // A bare import/build is always safe: it points back to the test-store implementation.
+      selectImplementation('development');
+    }
+  }
 }
 
 process.exit(exitCode);

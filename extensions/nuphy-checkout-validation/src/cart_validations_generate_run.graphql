@@ -11,6 +11,13 @@ query CartValidationsGenerateRunInput {
         ... on ProductVariant {
           product {
             id
+            # BEGIN CLEARANCE_CHECKOUT
+            # 正式主站和 NuPhyX 使用各自的 Refurbished 集合；集合成员是唯一清仓名单。
+            isClearance: inAnyCollection(ids: ["gid://shopify/Collection/511514738797", "gid://shopify/Collection/491886117104"])
+            productType
+            vendor
+            handle
+            # END CLEARANCE_CHECKOUT
             metafield(namespace: "custom", key: "limits") {
               value
             }

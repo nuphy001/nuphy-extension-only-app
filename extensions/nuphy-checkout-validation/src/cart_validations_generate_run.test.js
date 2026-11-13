@@ -10,7 +10,7 @@ function createCartLine(productId, quantity = 1) {
     quantity,
     merchandise: {
       __typename: "ProductVariant",
-      product: { id: productId }
+      product: { id: productId, isClearance: false }
     }
   };
 }
@@ -248,5 +248,44 @@ describe('边界情况和异常处理', () => {
     ]);
     const result = cartValidationsGenerateRun(input);
     expect(result.operations[0].validationAdd.errors.length).toBe(0);
+  });
+});
+
+describe('清仓商品结账隔离', () => {
+  it('允许混合加购，但在结账交互及最终提交时拦截混购和实体赠品', () => {
+    const clearance = createCartLine("gid://shopify/Product/10207871140080", 2);
+    clearance.merchandise.product.isClearance = true;
+    const regular = createCartLine(OTHER_PRODUCT_ID);
+    const gift = { ...regular, attributes: [{ key: "_promo_role", value: "gift" }] };
+    expect(cartValidationsGenerateRun(createInput([clearance, regular], "CART_INTERACTION")).operations[0].validationAdd.errors).toEqual([]);
+    for (const step of ["CHECKOUT_INTERACTION", "CHECKOUT_COMPLETION"]) {
+      for (const other of [regular, gift]) {
+        const errors = cartValidationsGenerateRun(createInput([clearance, other], step)).operations[0].validationAdd.errors;
+        expect(errors).toEqual([{ message: expect.stringContaining("must be ordered separately"), target: "$.cart" }]);
+      }
+    }
+  });
+
+  it('允许单类与 Seel 运费保障，并保留原有盲盒校验', () => {
+    const clearance = createCartLine("gid://shopify/Product/10207871140080", 3);
+    clearance.merchandise.product.isClearance = true;
+    const protection = createCartLine(OTHER_PRODUCT_ID);
+    const regular = createCartLine(PARTICIPATING_ID);
+    for (const identity of [{ productType: "SEEL-WFP" }, { vendor: "Seel", handle: "worry-free-delivery" }]) {
+      protection.merchandise.product = { id: OTHER_PRODUCT_ID, isClearance: false, ...identity };
+      for (const lines of [[clearance, clearance], [regular, regular], [clearance, protection]]) {
+        expect(cartValidationsGenerateRun(createInput(lines, "CHECKOUT_COMPLETION")).operations[0].validationAdd.errors).toEqual([]);
+      }
+    }
+    const unknown = createCartLine(OTHER_PRODUCT_ID);
+    delete unknown.merchandise.product.isClearance;
+    expect(cartValidationsGenerateRun(createInput([clearance, unknown])).operations[0].validationAdd.errors)
+      .toEqual([{ message: expect.stringContaining("couldn't verify"), target: "$.cart" }]);
+    const errors = cartValidationsGenerateRun(createInput([clearance, createCartLine(MYSTERY_BOX_ID, 2)])).operations[0].validationAdd.errors;
+    expect(errors.map(error => error.message)).toEqual(expect.arrayContaining([
+      expect.stringContaining("must be ordered separately"),
+      "You can only purchase one Mystery Box per order.",
+      "Mystery Box must be purchased with a participating product.",
+    ]));
   });
 });

@@ -1,5 +1,7 @@
 // @ts-check
 
+import { getClearanceValidationErrors } from "./clearance-validation.js";
+
 /**
  * @typedef {import("../generated/api").CartValidationsGenerateRunInput} CartValidationsGenerateRunInput
  * @typedef {import("../generated/api").CartValidationsGenerateRunResult} CartValidationsGenerateRunResult
@@ -39,13 +41,15 @@ export function cartValidationsGenerateRun(input) {
     return { operations: [{ validationAdd: { errors: [] } }] };
   }
 
+  errors.push(...getClearanceValidationErrors(input));
+
   // 快速检查：购物车中是否有盲盒产品
   const hasMysteryBox = input.cart.lines.some(
     (line) => line.merchandise?.product?.id === MYSTERY_BOX_ID
   );
 
   if (!hasMysteryBox) {
-    return { operations: [{ validationAdd: { errors: [] } }] };
+    return { operations: [{ validationAdd: { errors } }] };
   }
 
   let mysteryBoxQuantity = 0;
